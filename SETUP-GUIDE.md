@@ -1,133 +1,140 @@
-# LIO 브랜드 투표 페이지 — GitHub 배포 가이드
+# LIO 브랜드 투표 — JSONBin.io 셋업 가이드
 
-내부용 20명 미만 투표 시스템입니다.
-**가입·API 키 없이** 2분 안에 URL 발급받을 수 있습니다.
-
-준비물:
-- GitHub 계정 (이미 있을 거예요)
-- `lio-design-system.html` 파일
-- `logos/` 폴더
+CounterAPI v1의 CORS 문제로 인해 JSONBin.io로 전환합니다.
+**가입 1회 + 두 줄 입력으로 즉시 작동합니다.**
 
 ---
 
-## STEP 1 — Namespace 정하기 (30초)
+## STEP 1 — JSONBin.io 가입 (1분)
 
-`lio-design-system.html` 파일을 텍스트 에디터(VS Code, 메모장 등)로 열고 파일 상단에서 이 줄을 찾으세요:
+1. **https://jsonbin.io** 접속 → 우측 상단 **Sign Up**
+2. 이메일·비밀번호로 가입 (또는 Google·GitHub 로그인)
+3. 이메일 인증 (받은 메일에서 confirm 링크 클릭)
+4. 로그인 완료
 
-```javascript
-const COUNTER_NS = 'lio-brand-vote-CHANGE-ME';
+> Free plan: 10,000 requests/month — 내부 20명 투표에 충분.
+
+---
+
+## STEP 2 — 새 Bin 만들기 (30초)
+
+1. 로그인 후 좌측 메뉴 **Bins** 클릭
+2. 우측 상단 **+ CREATE A BIN** 버튼 클릭
+3. JSON 에디터에 정확히 다음 내용 입력 (복붙):
+
+```json
+{
+  "1": 0,
+  "2": 0,
+  "3": 0,
+  "4": 0,
+  "5": 0
+}
 ```
 
-이 `'lio-brand-vote-CHANGE-ME'`를 **추측하기 어려운 unique 문자열**로 변경해주세요. 추천 예시:
+4. 우측 상단 **CREATE** 버튼 클릭
+5. 생성된 bin 페이지로 이동되고, 주소창 URL이 다음과 같이 보임:
+   ```
+   https://jsonbin.io/68xxxxxxxxxxxxxxxxxx
+   ```
+   `/68...` 뒤의 **긴 문자열이 BIN ID**입니다. 복사해두세요.
+
+---
+
+## STEP 3 — Master Key 복사 (30초)
+
+1. 좌측 메뉴 맨 아래 **API Keys** 클릭
+2. **MASTER KEY** 섹션에서 키 복사 (`$2a$10$...` 형태로 시작하는 긴 문자열)
+
+> Master Key는 한 사람당 한 개이고 영구적입니다.
+
+---
+
+## STEP 4 — HTML 파일에 붙여넣기 (1분)
+
+`lio-design-system.html`을 텍스트 에디터로 열고, 파일 상단에서 다음 두 줄을 찾으세요:
 
 ```javascript
-const COUNTER_NS = 'lio-vote-poly-x9k4p7m2';
+const JSONBIN_BIN_ID = 'YOUR_BIN_ID';
+const JSONBIN_MASTER_KEY = 'YOUR_MASTER_KEY';
 ```
 
-> **왜 unique해야 하나요?**
-> 누구나 `lio-brand-vote` 같은 흔한 namespace를 추측해서 카운트를 조작할 수 있습니다. 무작위 문자 몇 개를 섞으면 사실상 안전합니다 (이런 식의 obscurity는 내부 20명 정도에는 충분).
+각각 STEP 2와 STEP 3에서 복사한 값으로 교체:
+
+```javascript
+const JSONBIN_BIN_ID = '68a1b2c3d4e5f6a7b8c9d0e1';
+const JSONBIN_MASTER_KEY = '$2a$10$abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJK';
+```
 
 저장.
 
 ---
 
-## STEP 2 — GitHub에 올리기 (1분)
+## STEP 5 — GitHub에 재업로드 (30초)
 
-### 옵션 A: 새 repository로 시작 (가장 단순)
-
-1. https://github.com/new 접속
-2. Repository name: `lio-vote` (자유)
-3. Public 선택 (GitHub Pages 무료 사용)
-4. **Create repository**
-5. 다음 화면에서 **uploading an existing file** 클릭
-6. `lio-design-system.html`과 `logos/` 폴더를 **드래그앤드롭**
-7. **Commit changes** 클릭
-
-### 옵션 B: 이미 있는 repo에 올리기
-
-해당 repo로 가서 똑같이 파일 업로드 후 commit.
+1. https://github.com/jinilee-hue/LIO 접속
+2. `lio-design-system.html` 클릭 → 우상단 연필 아이콘(Edit) 또는 **Add file → Upload files**로 새 파일 업로드 (같은 이름이면 자동 교체)
+3. **Commit changes**
+4. 1~2분 후 https://jinilee-hue.github.io/LIO/lio-design-system.html 에서 반영
 
 ---
 
-## STEP 3 — GitHub Pages 활성화 (30초)
+## STEP 6 — 동작 확인
 
-1. Repository 페이지 상단 → **Settings**
-2. 좌측 메뉴 → **Pages**
-3. **Source**: `Deploy from a branch`
-4. **Branch**: `main` (또는 `master`) / `/(root)` 선택
-5. **Save** 클릭
-6. 1~2분 후 페이지 상단에 URL이 표시됨:
-   `https://your-username.github.io/lio-vote/lio-design-system.html`
+1. https://jinilee-hue.github.io/LIO/lio-design-system.html 접속
+2. 페이지 상단에 **노란 경고 배너 없음** 확인
+3. 아무 디자인 카드에서 "이 디자인으로 결정하기" 버튼 클릭
+4. **참여 1표** 표시 + 결과 차트 자동 표시되면 성공
 
-이 URL을 팀에 공유하면 끝.
-
----
-
-## (선택) 더 깔끔한 URL 만들기
-
-파일명을 `lio-design-system.html` → `index.html`로 바꾸면 URL이 간단해집니다:
-- 전: `https://username.github.io/lio-vote/lio-design-system.html`
-- 후: `https://username.github.io/lio-vote/`
-
-repository에서 파일명 변경 → commit → 1분 후 적용.
+**다른 사람이 다른 브라우저로 들어와서 투표하면 카운트가 누적**됩니다 (페이지 새로고침 또는 30초 polling으로 반영).
 
 ---
 
 ## 결과 확인 방법
 
-**페이지 자체에서**:
-- 상단 sticky bar에 실시간 총 투표 수 표시
-- 본인 투표 후 즉시 1위 차트 표시
-- 페이지를 다시 열거나 30초마다 자동으로 다른 사람 표 반영
+**JSONBin 대시보드**:
+- jsonbin.io → Bins → 본인 bin 클릭 → 현재 카운트 JSON 직접 확인
 
-**Counter 직접 확인**:
-브라우저 주소창에 다음 URL 입력 (`your-ns` 부분만 본인 namespace로 교체):
+**또는 브라우저 URL**:
 ```
-https://api.counterapi.dev/v1/your-ns/candidate-1
-https://api.counterapi.dev/v1/your-ns/candidate-2
-https://api.counterapi.dev/v1/your-ns/candidate-3
-https://api.counterapi.dev/v1/your-ns/candidate-4
-https://api.counterapi.dev/v1/your-ns/candidate-5
+https://api.jsonbin.io/v3/b/[YOUR_BIN_ID]/latest
 ```
-각 후보의 현재 카운트가 JSON으로 표시됩니다.
+브라우저에 입력하면 인증 에러가 뜨지만, 페이지에서는 정상 작동하니 무시.
 
 ---
 
 ## 투표 초기화 (필요 시)
 
-브라우저 주소창에 한 번씩 입력하면 0으로 reset:
-```
-https://api.counterapi.dev/v1/your-ns/candidate-1/set?count=0
-https://api.counterapi.dev/v1/your-ns/candidate-2/set?count=0
-... (5번 후보까지)
-```
+jsonbin.io 대시보드:
+1. Bin 클릭 → 오른쪽 상단 **edit** 또는 직접 JSON 수정
+2. 모든 값을 0으로 변경:
+   ```json
+   {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0}
+   ```
+3. **Update** 클릭
 
 ---
 
 ## 자주 묻는 질문
 
-**Q. 한 사람이 여러 번 투표할 수 있나요?**
-A. 같은 브라우저에서는 한 표만 가능 (localStorage 차단). 다른 브라우저·시크릿 모드로 들어오면 추가 투표 가능 — 내부 신뢰 환경에 충분합니다.
+**Q. Master Key를 HTML에 넣으면 위험하지 않나요?**
+A. 누구든 페이지 소스를 보면 키가 보입니다. 하지만:
+- 다른 사람이 키로 할 수 있는 건 **이 특정 bin의 데이터 조작뿐** (다른 계정·다른 bin 접근 불가)
+- 20명 내부 신뢰 환경에서는 사실상 안전
+- 진짜 걱정되면 투표 끝나고 bin 삭제하면 됨
 
-**Q. 누가 카운트를 조작할까 걱정됩니다.**
-A. namespace를 추측 어렵게 만들면 (Step 1) 사실상 안전합니다. 페이지 소스를 보면 namespace가 노출되긴 하지만, 내부 팀에 공유하는 URL이므로 문제 없습니다.
+**Q. 동시에 두 명이 투표하면 어떻게 되나요?**
+A. read-modify-write 방식이라 매우 드물게 둘 중 하나가 누락될 수 있습니다 (race condition). 20명이 동시에 한 클릭 누를 확률은 거의 0%라 문제 없습니다.
 
-**Q. 실시간 업데이트는 어떻게 되나요?**
-A. 페이지에 30초마다 자동 새로고침 + 창에 다시 포커스 들어오면 새로고침. 즉각 실시간은 아니지만 내부 회의 용도에 충분합니다.
-
-**Q. 무료 한도가 있나요?**
-A. CounterAPI 무료 무제한. 20명이 각자 한 번씩 투표하는 트래픽은 한도 근처에도 못 갑니다.
-
-**Q. 결과를 보고서에 넣고 싶어요.**
-A. 페이지 1위 카드를 스크린샷하시거나, 위의 "결과 확인 방법"에서 본 JSON 값을 직접 보시면 됩니다.
+**Q. 무료 한도?**
+A. JSONBin Free: 10,000 requests/month. 20명 × 페이지 polling 30초마다 × 회의 시간이라면 한도의 0.1%도 안 씁니다.
 
 ---
 
 ## 트러블슈팅
 
-- **노란 경고 배너 표시**: Step 1의 `COUNTER_NS`가 아직 기본값 (`CHANGE-ME`) 상태입니다. 본인 unique 문자열로 변경하세요.
-- **GitHub Pages URL이 404**: Settings → Pages에서 Source 설정 확인. Branch가 `main`이고 `/(root)`인지, Save 후 1~2분 대기.
-- **로고가 안 보임**: `logos/` 폴더가 같이 업로드됐는지 확인.
-- **투표 후 카운트가 안 올라감**: 브라우저 콘솔(F12)에서 에러 메시지 확인 후 알려주세요.
+- **노란 배너 표시**: Step 4의 두 값이 아직 placeholder입니다.
+- **"투표 처리 중 오류"**: Master Key가 잘못 복사됨. 따옴표 빠뜨림 또는 키 끝 부분 누락. JSONBin → API Keys에서 다시 복사.
+- **카운트 안 올라감**: F12 → Console에서 정확한 에러 메시지 확인 후 알려주세요.
 
 수고하셨습니다.
