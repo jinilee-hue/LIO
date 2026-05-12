@@ -1251,15 +1251,20 @@
 
 <script>
   // ============================================================
-  // COUNTERAPI NAMESPACE — 본인 unique 문자열로 변경
-  // (가입·키 불필요. 같은 namespace를 쓰는 사람들끼리 카운트 공유)
-  // 추측 어려운 문자열로 정하세요. 예: lio-brand-vote-x9k4p7
+  // JSONBIN.IO CONFIGURATION — 두 줄만 본인 값으로 교체
+  // (JSONBin.io 가입 → bin 생성 → ID + Master Key 복사)
   // ============================================================
-  const COUNTER_NS = 'lio-poly-brand-vote-mx9k4p7nq2';
+  const JSONBIN_BIN_ID = '6a02f735250b1311c33ac613';
+  const JSONBIN_MASTER_KEY = 'Y$2a$10$jyzRdqaA.MnsuJjMtleHi.ffXM8HqrmtJqJUH/us8pIQxwqUZ2Ou.';
   // ============================================================
 
-  const COUNTER_API = 'https://api.counterapi.dev/v1/' + COUNTER_NS;
-  const COUNTER_CONFIGURED = COUNTER_NS !== 'lio-brand-vote-CHANGE-ME';
+  const BIN_CONFIGURED = JSONBIN_BIN_ID !== 'YOUR_BIN_ID' 
+                      && JSONBIN_MASTER_KEY !== 'YOUR_MASTER_KEY';
+  const JSONBIN_API = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+  const JSONBIN_HEADERS = {
+    'Content-Type': 'application/json',
+    'X-Master-Key': JSONBIN_MASTER_KEY
+  };
 
   const LOGO_DATA = {
     1: { name: 'Pure & Trusted', kr: '맑고 안정감', theme: '#4FAEB3' },
@@ -1272,6 +1277,7 @@
   let votes = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   let voted = false;
   let userChoice = null;
+  let isWriting = false;
 
   const savedChoice = localStorage.getItem('lio_user_choice');
   if (savedChoice) {
@@ -1288,26 +1294,45 @@
     if (el) el.innerHTML = '참여 <strong>' + totalVotes().toLocaleString() + '표</strong>';
   }
 
-  function parseCount(data) {
-    if (!data) return 0;
-    if (typeof data.count === 'number') return data.count;
-    if (typeof data.value === 'number') return data.value;
-    return 0;
-  }
-
   async function loadVotes() {
-    if (!COUNTER_CONFIGURED) return;
+    if (!BIN_CONFIGURED) return;
     try {
-      const results = await Promise.all([1,2,3,4,5].map(async (id) => {
-        const r = await fetch(`${COUNTER_API}/candidate-${id}`, { cache: 'no-store' });
-        if (!r.ok) return 0;
-        return parseCount(await r.json());
-      }));
-      [1,2,3,4,5].forEach((id, i) => { votes[id] = results[i]; });
+      const r = await fetch(`${JSONBIN_API}/latest`, {
+        headers: { 'X-Master-Key': JSONBIN_MASTER_KEY },
+        cache: 'no-store'
+      });
+      if (!r.ok) {
+        console.warn('loadVotes HTTP error:', r.status);
+        return;
+      }
+      const data = await r.json();
+      const record = data.record || {};
+      votes = {
+        1: parseInt(record['1']) || 0,
+        2: parseInt(record['2']) || 0,
+        3: parseInt(record['3']) || 0,
+        4: parseInt(record['4']) || 0,
+        5: parseInt(record['5']) || 0
+      };
       updateTopBarStat();
       if (voted) renderResults();
     } catch (e) {
       console.warn('loadVotes failed', e);
+    }
+  }
+
+  async function saveVotes() {
+    if (!BIN_CONFIGURED) return false;
+    try {
+      const r = await fetch(JSONBIN_API, {
+        method: 'PUT',
+        headers: JSONBIN_HEADERS,
+        body: JSON.stringify(votes)
+      });
+      return r.ok;
+    } catch (e) {
+      console.warn('saveVotes failed', e);
+      return false;
     }
   }
 
@@ -1381,21 +1406,22 @@
   }
 
   async function handleVote(id) {
-    if (voted) return;
-    if (!COUNTER_CONFIGURED) {
-      alert('CounterAPI 설정이 필요합니다.\nHTML 파일 상단의 COUNTER_NS를 unique한 문자열로 변경해주세요.');
+    if (voted || isWriting) return;
+    if (!BIN_CONFIGURED) {
+      alert('JSONBin 설정이 필요합니다.\nHTML 상단의 JSONBIN_BIN_ID 와 JSONBIN_MASTER_KEY 를 본인 값으로 교체해주세요.');
       return;
     }
     if (localStorage.getItem('lio_user_choice')) {
       alert('이미 투표하셨습니다. (이 브라우저에서)');
       return;
     }
+    isWriting = true;
     try {
-      const r = await fetch(`${COUNTER_API}/candidate-${id}/up`, { cache: 'no-store' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const data = await r.json();
-      const newCount = parseCount(data);
-      votes[id] = newCount > 0 ? newCount : votes[id] + 1;
+      // Read-modify-write: load latest, increment, save back
+      await loadVotes();
+      votes[id] = (votes[id] || 0) + 1;
+      const ok = await saveVotes();
+      if (!ok) throw new Error('저장 실패');
       localStorage.setItem('lio_user_choice', String(id));
       voted = true;
       userChoice = id;
@@ -1404,21 +1430,22 @@
       setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 200);
     } catch (e) {
       alert('투표 처리 중 오류: ' + e.message);
+    } finally {
+      isWriting = false;
     }
   }
 
   async function reset() {
-    if (!voted) return;
+    if (!voted || isWriting) return;
     const choice = parseInt(localStorage.getItem('lio_user_choice') || '0');
-    if (choice && COUNTER_CONFIGURED) {
+    if (choice && BIN_CONFIGURED) {
+      isWriting = true;
       try {
-        const r = await fetch(`${COUNTER_API}/candidate-${choice}/down`, { cache: 'no-store' });
-        if (r.ok) {
-          const data = await r.json();
-          const newCount = parseCount(data);
-          votes[choice] = Math.max(0, newCount);
-        }
+        await loadVotes();
+        votes[choice] = Math.max(0, (votes[choice] || 0) - 1);
+        await saveVotes();
       } catch (e) { console.warn(e); }
+      isWriting = false;
     }
     localStorage.removeItem('lio_user_choice');
     voted = false;
@@ -1435,8 +1462,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  if (COUNTER_CONFIGURED) {
-    // Initial load + refresh whenever page regains focus or every 30s
+  if (BIN_CONFIGURED) {
     loadVotes().then(() => {
       if (voted && userChoice) applyVoteUI(userChoice);
     });
@@ -1448,7 +1474,7 @@
     if (bar) {
       const hint = document.createElement('div');
       hint.style.cssText = 'background:#FFE5B4;color:#8B4513;padding:8px 16px;font-size:12px;text-align:center;font-weight:500;';
-      hint.textContent = '⚠️ CounterAPI 미설정 — HTML 상단의 COUNTER_NS를 unique한 문자열로 변경해야 투표가 작동합니다';
+      hint.textContent = '⚠️ JSONBin 미설정 — HTML 상단의 JSONBIN_BIN_ID와 JSONBIN_MASTER_KEY를 입력해야 투표가 작동합니다';
       bar.parentNode.insertBefore(hint, bar.nextSibling);
     }
   }
