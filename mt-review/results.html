@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luna's Review — Results</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: var(--font-base);
+      background: linear-gradient(135deg, #0a0a24 0%, #0f0f3a 50%, #0a0a24 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    canvas#confetti-canvas {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 1;
+    }
+    .results-card {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: var(--sp-xl);
+      max-width: 480px;
+      width: 100%;
+      animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.7); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .emoji-big {
+      font-size: 72px;
+      margin-bottom: var(--sp-md);
+      display: block;
+      animation: bounce 0.8s ease 0.3s both;
+    }
+    @keyframes bounce {
+      0%   { transform: scale(0) rotate(-15deg); }
+      70%  { transform: scale(1.2) rotate(5deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    .student-name {
+      font-size: 14px;
+      color: rgba(255,255,255,0.55);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: var(--sp-sm);
+    }
+    .total-score {
+      font-size: 52px;
+      font-weight: 800;
+      color: var(--star);
+      margin: var(--sp-md) 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .stars-label { font-size: 22px; color: rgba(255,255,255,0.4); }
+
+    /* Per-question breakdown */
+    .breakdown {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: var(--sp-lg) 0;
+    }
+    .breakdown-row {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-sm);
+      background: rgba(255,255,255,0.07);
+      border-radius: var(--r-md);
+      padding: 10px var(--sp-md);
+      text-align: left;
+    }
+    .breakdown-row .q-num {
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.45);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      min-width: 28px;
+    }
+    .breakdown-row .concept-label {
+      flex: 1;
+      font-size: 14px;
+      color: rgba(255,255,255,0.8);
+    }
+    .breakdown-row .score-stars {
+      font-size: 16px;
+      letter-spacing: 2px;
+    }
+
+    .message {
+      font-size: 16px;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.6;
+      margin-bottom: var(--sp-lg);
+    }
+    .btn-again {
+      display: inline-block;
+      padding: 14px var(--sp-xl);
+      background: var(--poly-blue);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: var(--r-pill);
+      text-decoration: none;
+      transition: background 0.2s, transform 0.1s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-again:hover { background: var(--poly-blue-dark); transform: scale(1.03); }
+  </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<div class="results-card">
+  <span class="emoji-big" id="result-emoji">⭐</span>
+  <div class="student-name" id="student-name-label">Great work!</div>
+  <h1 id="result-heading">Session Complete!</h1>
+
+  <div class="total-score">
+    <span id="total-stars-count">0</span>
+    <span class="stars-label">/ <span id="max-stars">0</span> ⭐</span>
+  </div>
+
+  <div class="breakdown" id="breakdown"></div>
+
+  <p class="message" id="result-message">Luna is proud of you! Keep practicing and you'll do even better next time.</p>
+
+  <a class="btn-again" href="index.html">Try Another Session →</a>
+</div>
+
+<link rel="stylesheet" href="styles/tokens.css">
+<script src="js/utils.js"></script>
+<script>
+  (function buildResults() {
+    const scores    = JSON.parse(sessionStorage.getItem('mt_scores') || '[]');
+    const student   = JSON.parse(sessionStorage.getItem('mt_student') || '{}');
+    const session   = JSON.parse(sessionStorage.getItem('mt_session') || '{}');
+    const wrongs    = session.wrongAnswers || [];
+
+    const total    = scores.reduce((a, b) => a + (b || 0), 0);
+    const maxTotal = scores.length * 3;
+    const pct      = maxTotal > 0 ? total / maxTotal : 0;
+
+    // Heading + emoji
+    let emoji = '⭐', heading = 'Session Complete!', msg;
+    if (pct >= 0.9)       { emoji = '🏆'; heading = 'Amazing work!'; msg = `You got almost everything right on the first try, ${student.name || 'Superstar'}! Luna is super impressed!`; }
+    else if (pct >= 0.67) { emoji = '🌟'; heading = 'Well done!';    msg = `Great effort, ${student.name || 'friend'}! You really thought hard and worked through those tough questions.`; }
+    else if (pct >= 0.4)  { emoji = '👍'; heading = 'Good try!';     msg = `You kept going even when it was hard, ${student.name || 'friend'}! Practice makes perfect — you're getting there!`; }
+    else                   { emoji = '💪'; heading = 'Keep it up!';   msg = `Luna believes in you, ${student.name || 'friend'}! These were tough questions. Let's try again soon!`; }
+
+    document.getElementById('result-emoji').textContent  = emoji;
+    document.getElementById('result-heading').textContent = heading;
+    document.getElementById('result-message').textContent = msg;
+    document.getElementById('total-stars-count').textContent = total;
+    document.getElementById('max-stars').textContent = maxTotal;
+
+    if (student.name) {
+      document.getElementById('student-name-label').textContent = student.name + ' · POLY';
+    }
+
+    // Breakdown rows
+    const breakdown = document.getElementById('breakdown');
+    scores.forEach((score, i) => {
+      const item    = wrongs[i] || {};
+      const stars   = score || 0;
+      const row     = document.createElement('div');
+      row.className = 'breakdown-row';
+      const starStr = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+      row.innerHTML = `
+        <span class="q-num">Q${i + 1}</span>
+        <span class="concept-label">${item.concept || 'reading'} — Q${item.questionNumber || (i+1)}</span>
+        <span class="score-stars">${starStr}</span>
+      `;
+      breakdown.appendChild(row);
+    });
+
+    // Confetti on good score
+    if (pct >= 0.67) {
+      const canvas = document.getElementById('confetti-canvas');
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      setTimeout(() => Utils.confettiBurst(canvas), 400);
+    }
+  })();
+</script>
+</body>
+</html>

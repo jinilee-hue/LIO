@@ -1,0 +1,47 @@
+:root {
+  /* POLY Brand */
+  --poly-blue: #0066FF;
+  --poly-blue-dark: #0050CC;
+
+  /* Neutral */
+  --white: #FFFFFF;
+  --gray-50: #F8F9FA;
+  --gray-100: #F1F3F5;
+  --gray-200: #E9ECEF;
+  --gray-400: #868E96;
+  --gray-600: #495057;
+  --gray-800: #212529;
+
+  /* Status */
+  --success: #2ECC71;
+  --success-bg: rgba(46,204,113,0.15);
+  --error: #E74C3C;
+  --warning: #F39C12;
+  --star: #F4C430;
+
+  /* Overlay */
+  --overlay-dark: rgba(0,0,0,0.55);
+  --overlay-card: rgba(255,255,255,0.92);
+  --overlay-card-dark: rgba(20,20,30,0.72);
+
+  /* Typography */
+  --font-base: 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-en: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Spacing */
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 16px;
+  --sp-lg: 24px;
+  --sp-xl: 40px;
+
+  /* Radius */
+  --r-sm: 8px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+
+  /* Shadow */
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.18);
+  --shadow-glow: 0 0 24px rgba(0,102,255,0.35);
+}

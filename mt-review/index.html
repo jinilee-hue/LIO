@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MT Review — POLY</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-base);
+      background: #f0f4ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--sp-lg);
+    }
+    .card {
+      background: #fff;
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-card);
+      padding: var(--sp-xl);
+      width: 100%;
+      max-width: 520px;
+    }
+    .logo {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--poly-blue);
+      margin-bottom: var(--sp-xs);
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: var(--gray-400);
+      margin-bottom: var(--sp-xl);
+    }
+    .field { margin-bottom: var(--sp-md); }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gray-600);
+      margin-bottom: var(--sp-xs);
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px var(--sp-md);
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--r-sm);
+      font-size: 15px;
+      font-family: var(--font-base);
+      color: var(--gray-800);
+      transition: border-color 0.2s;
+      background: #fff;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--poly-blue);
+    }
+    textarea { min-height: 140px; resize: vertical; font-size: 13px; line-height: 1.6; }
+    .row { display: flex; gap: var(--sp-md); }
+    .row .field { flex: 1; }
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: var(--poly-blue);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: var(--sp-lg);
+    }
+    .btn-primary:hover { background: var(--poly-blue-dark); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-demo {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: transparent;
+      color: var(--poly-blue);
+      font-size: 14px;
+      font-weight: 600;
+      border: 1.5px solid var(--poly-blue);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: var(--sp-sm);
+      text-align: center;
+      text-decoration: none;
+    }
+    .btn-demo:hover { background: rgba(0,102,255,0.06); }
+    .hint {
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-top: 4px;
+    }
+    #api-key-field input, #el-key-field input { font-family: monospace; font-size: 13px; letter-spacing: 0.02em; }
+    .key-row { display: flex; gap: var(--sp-md); }
+    .key-row .field { flex: 1; }
+    .badge-optional {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      background: #e8f4ff; color: var(--poly-blue);
+      border-radius: var(--r-pill); padding: 2px 8px;
+      vertical-align: middle; margin-left: 6px;
+    }
+    #error-msg {
+      color: var(--error);
+      font-size: 13px;
+      margin-top: var(--sp-sm);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">POLY</div>
+  <h1>Luna's MT Review</h1>
+  <p class="subtitle">틀린 문제를 Luna와 함께 다시 풀어봐요!</p>
+
+  <div class="key-row">
+    <div class="field" id="api-key-field">
+      <label>Anthropic API Key</label>
+      <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off">
+      <p class="hint">문제 생성·평가에 사용</p>
+    </div>
+    <div class="field" id="el-key-field">
+      <label>ElevenLabs API Key <span class="badge-optional">고품질 TTS</span></label>
+      <input type="password" id="el-key" placeholder="sk_..." autocomplete="off">
+      <p class="hint">없으면 기본 음성으로 대체</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>학생 이름</label>
+      <input type="text" id="student-name" placeholder="예: Jisu">
+    </div>
+    <div class="field">
+      <label>학년</label>
+      <select id="student-grade">
+        <option value="1">Grade 1</option>
+        <option value="2" selected>Grade 2</option>
+        <option value="3">Grade 3</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>반 코드</label>
+      <input type="text" id="class-code" placeholder="P2-A">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>MT 오답 데이터 (JSON)</label>
+    <textarea id="wrong-answers-json" placeholder='[
+  {
+    "topic": "forest animals",
+    "originalQuestion": "Why did the rabbit stay in her burrow?",
+    "correctAnswer": "Because it was raining outside",
+    "studentAnswer": "Because she was sleeping",
+    "concept": "detail",
+    "questionNumber": 3
+  }
+]'></textarea>
+    <p class="hint">JSON 형식으로 붙여넣기 하거나, 아래 데모 버튼을 눌러 샘플 데이터로 시작하세요.</p>
+  </div>
+
+  <div id="error-msg"></div>
+
+  <button class="btn-primary" onclick="startSession()">시작하기 →</button>
+  <a class="btn-demo" href="session.html?demo=true">샘플 데이터로 데모 시작</a>
+</div>
+
+<script>
+  // Pre-fill API keys from localStorage
+  const storedKey = localStorage.getItem('mt_api_key');
+  if (storedKey) document.getElementById('api-key').value = storedKey;
+  const storedElKey = localStorage.getItem('mt_el_key');
+  if (storedElKey) document.getElementById('el-key').value = storedElKey;
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function startSession() {
+    const apiKey     = document.getElementById('api-key').value.trim();
+    const elKey      = document.getElementById('el-key').value.trim();
+    const name       = document.getElementById('student-name').value.trim();
+    const grade      = parseInt(document.getElementById('student-grade').value);
+    const classCode  = document.getElementById('class-code').value.trim();
+    const jsonRaw    = document.getElementById('wrong-answers-json').value.trim();
+
+    if (!apiKey) { showError('API 키를 입력해주세요.'); return; }
+    if (!name)   { showError('학생 이름을 입력해주세요.'); return; }
+
+    let wrongAnswers;
+    try {
+      wrongAnswers = jsonRaw ? JSON.parse(jsonRaw) : [];
+      if (!Array.isArray(wrongAnswers) || wrongAnswers.length === 0) throw new Error();
+    } catch (_) {
+      showError('오답 데이터 JSON 형식이 잘못되었습니다. 빈칸이면 데모 버튼을 이용하세요.');
+      return;
+    }
+
+    // Normalize items (add ids & defaults)
+    wrongAnswers = wrongAnswers.map((item, i) => ({
+      id: item.id || `wa-${i}`,
+      topic: item.topic || 'general',
+      originalPassage: item.originalPassage || '',
+      originalQuestion: item.originalQuestion || '',
+      correctAnswer: item.correctAnswer || '',
+      studentAnswer: item.studentAnswer || '',
+      concept: item.concept || 'detail',
+      questionNumber: item.questionNumber || (i + 1),
+    }));
+
+    localStorage.setItem('mt_api_key', apiKey);
+    if (elKey) localStorage.setItem('mt_el_key', elKey);
+
+    const session = {
+      student: {
+        id: `student-${Date.now()}`,
+        name,
+        grade,
+        classCode,
+        mtDate: new Date().toISOString().split('T')[0],
+      },
+      wrongAnswers,
+    };
+    sessionStorage.setItem('mt_session', JSON.stringify(session));
+
+    const url = new URL('session.html', window.location.href);
+    url.searchParams.set('key', apiKey);
+    if (elKey) url.searchParams.set('elkey', elKey);
+    window.location.href = url.toString();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luna's Review — POLY MT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/mt-review.css">
+</head>
+<body>
+
+<!-- Background -->
+<div id="bg-fallback"></div>
+<video id="bg-video" autoplay muted loop playsinline></video>
+<div id="bg-overlay"></div>
+
+<!-- Background Music -->
+<audio id="bg-music" loop>
+  <source src="assets/music/bg-ambient.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Start Gate (required to unlock browser audio) -->
+<div id="start-gate">
+  <div id="start-card">
+    <div id="start-logo">POLY</div>
+    <div id="start-title">Luna's Review</div>
+    <div id="start-subtitle">Luna와 함께 오늘의 복습을 시작해요!</div>
+    <button id="start-btn">시작하기 ▶</button>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="hidden">
+  <div class="spinner"></div>
+  <p>Luna is preparing your story…</p>
+</div>
+
+<!-- Confetti Canvas -->
+<canvas id="confetti-canvas"></canvas>
+
+<!-- STT Toast -->
+<div id="stt-toast" class="hidden"></div>
+
+<!-- App -->
+<div id="app">
+
+  <!-- Top Bar -->
+  <div id="top-bar">
+    <div id="brand"><span>POLY</span> · Luna's Review</div>
+    <div id="progress-bar"></div>
+    <div id="q-label">Q <span id="q-current">1</span> / <span id="q-total">5</span></div>
+  </div>
+
+  <!-- Content -->
+  <div id="content-area">
+
+    <!-- Passage Card -->
+    <div id="passage-card" class="hidden">
+      <span class="passage-label">Story</span>
+      <div id="passage-text"></div>
+    </div>
+
+    <!-- Question + Options Card -->
+    <div id="question-card" class="hidden">
+      <div id="question-text"></div>
+      <ul id="options-list"></ul>
+    </div>
+
+  </div><!-- /content-area -->
+</div><!-- /app -->
+
+<script src="js/mt-data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/background.js"></script>
+<script src="js/claude-api.js"></script>
+<script src="js/tutor-engine.js"></script>
+
+</body>
+</html>
