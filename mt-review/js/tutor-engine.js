@@ -149,11 +149,18 @@ const TutorEngine = (() => {
       utt.onend   = () => { clearTimeout(timer); resolve(); };
       utt.onerror = () => { clearTimeout(timer); resolve(); };
 
-      // Android Chrome 버그: onend가 발화되지 않는 경우 대비 — speaking 폴링
+      // Android Chrome 버그: onend가 발화되지 않는 경우 대비
+      // speechStarted 플래그: speak()→speaking=false 순간적 false에 속지 않도록
       setTimeout(() => {
         if (resolved) return;
+        let speechStarted = false;
         pollId = setInterval(() => {
-          if (!window.speechSynthesis.speaking) { clearTimeout(timer); resolve(); }
+          if (window.speechSynthesis.speaking) {
+            speechStarted = true;
+          } else if (speechStarted) {
+            clearTimeout(timer);
+            resolve();
+          }
         }, 250);
       }, 400);
 
@@ -203,11 +210,17 @@ const TutorEngine = (() => {
       utt.onend   = () => { clearTimeout(timer); resolve(); };
       utt.onerror = () => { clearTimeout(timer); resolve(); };
 
-      // Android Chrome 버그: onend가 발화되지 않는 경우 대비
+      // Android Chrome 버그: onend 미발화 대비 — speechStarted 플래그로 오판 방지
       setTimeout(() => {
         if (resolved) return;
+        let speechStarted = false;
         pollId = setInterval(() => {
-          if (!window.speechSynthesis.speaking) { clearTimeout(timer); resolve(); }
+          if (window.speechSynthesis.speaking) {
+            speechStarted = true;
+          } else if (speechStarted) {
+            clearTimeout(timer);
+            resolve();
+          }
         }, 250);
       }, 400);
 
