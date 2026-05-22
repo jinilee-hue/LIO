@@ -251,6 +251,7 @@ Start IMMEDIATELY when you receive "START". Do not wait for further instruction.
       gate.classList.add('hidden');
       setTimeout(() => gate.remove(), 700);
       showLoading(true, 'Luna is preparing your story…');
+      GeminiLive.warmUpAudio();   // pre-warm AudioContext during user gesture
       startSession();
     });
   });
