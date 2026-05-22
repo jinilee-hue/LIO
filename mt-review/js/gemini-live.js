@@ -4,7 +4,7 @@
  */
 
 const GeminiLive = (() => {
-  const WS_URL = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.BidiGenerateContent';
+  const WS_URL = 'wss://flat-wave-bc45.jini-lee.workers.dev';
 
   let _ws       = null;
   let _micCtx   = null;
@@ -28,7 +28,7 @@ const GeminiLive = (() => {
     _onTool = onToolCall;
 
     return new Promise((resolve, reject) => {
-      _ws = new WebSocket(`${WS_URL}?key=${apiKey}`);
+      _ws = new WebSocket(WS_URL);
 
       const timer = setTimeout(() => reject(new Error('Connection timeout')), 12000);
 

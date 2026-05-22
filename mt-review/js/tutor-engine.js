@@ -194,15 +194,10 @@ Start IMMEDIATELY when you receive "START". Do not wait for further instruction.
     // Show question card when typewriter finishes
     typewriterDone.then(() => showQuestionCard(currentContent));
 
-    if (!CONFIG.GEMINI_API_KEY) {
-      console.error('[Gemini] No API key — set GEMINI_API_KEY or pass ?gkey=');
-      return;
-    }
-
     // Connect Gemini Live (runs concurrently with typewriter)
     try {
       await GeminiLive.connect({
-        apiKey: CONFIG.GEMINI_API_KEY,
+        apiKey: '',
         systemPrompt: buildSystemPrompt(student, currentContent),
         tools: [ADVANCE_TOOL],
         onToolCall: (name, args) => {
