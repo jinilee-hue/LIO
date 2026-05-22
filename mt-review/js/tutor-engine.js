@@ -506,6 +506,7 @@ const TutorEngine = (() => {
 
   function _resetSilenceTimer(onTimeout) {
     _clearSilenceTimer();
+    const delay = isMobile() ? 10000 : 5000;
     _silenceTimer = setTimeout(async () => {
       STT.stop();
       setStatus('reading', '…');
@@ -513,7 +514,7 @@ const TutorEngine = (() => {
       _silenceIndex++;
       await speakKoAndWait(msg);
       onTimeout();   // 말 건 뒤 다시 듣기 시작
-    }, 3000);
+    }, delay);
   }
 
   const isMobile = () => 'ontouchstart' in window || navigator.maxTouchPoints > 0;
