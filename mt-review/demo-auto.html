@@ -48,8 +48,6 @@
       margin-right: 6px; color: #a8e6cf;
     }
 
-    /* ── Status indicator inside content-area ── */
-    #status-indicator { margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -95,10 +93,6 @@
       <div id="question-text"></div>
       <ul id="options-list"></ul>
     </div>
-    <div id="status-indicator" class="state-reading">
-      <div class="mic-wave"><span></span><span></span><span></span><span></span><span></span></div>
-      <span id="status-text">Luna is reading…</span>
-    </div>
   </div>
 </div>
 
@@ -131,13 +125,7 @@ const DEMO_ROUNDS = [
 const $   = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
-function setStatus(state, text) {
-  const el = $('status-indicator');
-  if (!el) return;
-  el.className = `state-${state}`;
-  const t = $('status-text');
-  if (t && text) t.textContent = text;
-}
+function setStatus() {}
 
 function showQuestionCard(content) {
   $('question-text').textContent = content.question;
