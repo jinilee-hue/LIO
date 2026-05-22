@@ -115,14 +115,14 @@ const TutorEngine = (() => {
       this.speaking = true;
 
       const utt = new SpeechSynthesisUtterance(text);
-      utt.lang = 'en-US'; utt.rate = 0.90; utt.pitch = 1.0; utt.volume = 1.0;
+      utt.lang = 'en-GB'; utt.rate = 0.88; utt.pitch = 0.92; utt.volume = 1.0;
 
-      // UK Female sounds more mature/warm than US English on Android Chrome
       const FEMALE_PREFS = [
-        'Google UK English Female',
+        'Google UK English Female',   // Android Chrome: 가장 성숙한 여성 목소리
         'Microsoft Aria', 'Microsoft Jenny',
+        'Samantha', 'Karen', 'Moira', // iOS
         'Google US English',
-        'Microsoft Ana', 'Microsoft Zira', 'Samantha', 'Karen', 'Moira',
+        'Microsoft Ana', 'Microsoft Zira',
       ];
       const voices = speechSynthesis.getVoices();
       let preferred = null;
@@ -130,6 +130,8 @@ const TutorEngine = (() => {
         preferred = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
         if (preferred) break;
       }
+      // en-GB 여성 목소리 우선
+      if (!preferred) preferred = voices.find(v => v.lang === 'en-GB' && !v.localService);
       if (!preferred) preferred = voices.find(v => v.lang === 'en-US' && !v.localService);
       if (!preferred) preferred = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'));
       if (!preferred) preferred = voices.find(v => v.lang.startsWith('en'));
@@ -205,6 +207,7 @@ const TutorEngine = (() => {
     active: false,
     _onResult: null,
     _onSpeechDetected: null,
+    _latestInterim: '',   // 모바일: final 없이 onend 올 때 fallback 용
 
     init() {
       const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -222,25 +225,32 @@ const TutorEngine = (() => {
         }
         const text = (final || interim).trim();
         if (text) {
-          this._onSpeechDetected?.();   // 발화 감지 시 침묵 타이머 리셋
+          this._latestInterim = text;
+          this._onSpeechDetected?.();
         }
-        if (final && this._onResult) this._onResult(final.trim());
+        if (final) {
+          this._latestInterim = '';
+          if (this._onResult) this._onResult(final.trim());
+        }
       };
 
       this.recognition.onerror = (e) => {
         console.warn('[STT] error:', e.error);
-        // not-allowed / audio-capture: 복구 불가 — active 해제
         if (e.error === 'not-allowed' || e.error === 'audio-capture') {
           this.active = false;
         }
-        // 그 외 (no-speech, network 등)는 onend 에서 재시작
       };
 
-      // onend: active가 true면 계속 듣는 중 → 즉시 재시작
-      // stop()은 active를 먼저 false로 바꾼 뒤 recognition.stop()을 호출하므로
-      // 여기 도달할 때는 이미 false → 재시작 안 함
       this.recognition.onend = () => {
         if (!this.active) return;
+        // 모바일에서 final 없이 onend가 올 경우 — interim 결과를 답으로 사용
+        if (this._latestInterim && this._onResult) {
+          const text = this._latestInterim;
+          this._latestInterim = '';
+          this._onResult(text);
+          return;
+        }
+        // 발화 없음 — 재시작
         setTimeout(() => {
           if (!this.active) return;
           try { this.recognition.start(); } catch (_) {}
@@ -251,14 +261,16 @@ const TutorEngine = (() => {
     listen(onResult) {
       if (!this.recognition) { console.warn('STT not available'); return; }
       this._onResult = onResult;
+      this._latestInterim = '';
       this.active = true;
       try { this.recognition.start(); } catch (_) {}
     },
 
     stop() {
-      this.active = false;          // 먼저 false → onend가 재시작하지 않도록
+      this.active = false;
       this._onResult = null;
       this._onSpeechDetected = null;
+      this._latestInterim = '';
       try { this.recognition?.stop(); } catch (_) {}
     },
 
