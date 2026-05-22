@@ -118,9 +118,9 @@ const TutorEngine = (() => {
       utt.lang = 'en-GB'; utt.rate = 0.88; utt.pitch = 0.92; utt.volume = 1.0;
 
       const FEMALE_PREFS = [
-        'Google UK English Female',   // Android Chrome: 가장 성숙한 여성 목소리
+        'Google UK English Female',
         'Microsoft Aria', 'Microsoft Jenny',
-        'Samantha', 'Karen', 'Moira', // iOS
+        'Samantha', 'Karen', 'Moira',
         'Google US English',
         'Microsoft Ana', 'Microsoft Zira',
       ];
@@ -130,7 +130,6 @@ const TutorEngine = (() => {
         preferred = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
         if (preferred) break;
       }
-      // en-GB 여성 목소리 우선
       if (!preferred) preferred = voices.find(v => v.lang === 'en-GB' && !v.localService);
       if (!preferred) preferred = voices.find(v => v.lang === 'en-US' && !v.localService);
       if (!preferred) preferred = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'));
@@ -138,15 +137,26 @@ const TutorEngine = (() => {
       if (preferred) utt.voice = preferred;
 
       let resolved = false;
+      let pollId = null;
       const resolve = () => {
         if (resolved) return;
         resolved = true;
+        if (pollId) { clearInterval(pollId); pollId = null; }
         this.speaking = false;
         onEnd?.();
       };
-      setTimeout(resolve, Math.max(4000, text.length * 120));
-      utt.onend   = resolve;
-      utt.onerror = () => resolve();
+      const timer = setTimeout(resolve, Math.max(2500, text.length * 75));
+      utt.onend   = () => { clearTimeout(timer); resolve(); };
+      utt.onerror = () => { clearTimeout(timer); resolve(); };
+
+      // Android Chrome 버그: onend가 발화되지 않는 경우 대비 — speaking 폴링
+      setTimeout(() => {
+        if (resolved) return;
+        pollId = setInterval(() => {
+          if (!window.speechSynthesis.speaking) { clearTimeout(timer); resolve(); }
+        }, 250);
+      }, 400);
+
       speechSynthesis.speak(utt);
     },
 
@@ -181,15 +191,26 @@ const TutorEngine = (() => {
       if (koVoice) utt.voice = koVoice;
 
       let resolved = false;
+      let pollId = null;
       const resolve = () => {
         if (resolved) return;
         resolved = true;
+        if (pollId) { clearInterval(pollId); pollId = null; }
         this.speaking = false;
         onEnd?.();
       };
-      setTimeout(resolve, Math.max(4000, text.length * 160));
-      utt.onend   = resolve;
-      utt.onerror = () => resolve();
+      const timer = setTimeout(resolve, Math.max(2500, text.length * 100));
+      utt.onend   = () => { clearTimeout(timer); resolve(); };
+      utt.onerror = () => { clearTimeout(timer); resolve(); };
+
+      // Android Chrome 버그: onend가 발화되지 않는 경우 대비
+      setTimeout(() => {
+        if (resolved) return;
+        pollId = setInterval(() => {
+          if (!window.speechSynthesis.speaking) { clearTimeout(timer); resolve(); }
+        }, 250);
+      }, 400);
+
       speechSynthesis.speak(utt);
     },
 
