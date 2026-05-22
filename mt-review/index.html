@@ -137,10 +137,17 @@
 
   <div class="key-row">
     <div class="field" id="api-key-field">
-      <label>Anthropic API Key</label>
+      <label>Anthropic API Key <span class="badge-optional">Claude</span></label>
       <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off">
-      <p class="hint">문제 생성·평가에 사용</p>
+      <p class="hint">문제 생성·평가에 사용 (Claude)</p>
     </div>
+    <div class="field" id="gemini-key-field">
+      <label>Gemini API Key <span class="badge-optional">대안</span></label>
+      <input type="password" id="gemini-key" placeholder="AIza..." autocomplete="off">
+      <p class="hint">Claude 키 없을 때 사용</p>
+    </div>
+  </div>
+  <div class="key-row">
     <div class="field" id="el-key-field">
       <label>ElevenLabs API Key <span class="badge-optional">고품질 TTS</span></label>
       <input type="password" id="el-key" placeholder="sk_..." autocomplete="off">
@@ -192,6 +199,8 @@
   // Pre-fill API keys from localStorage
   const storedKey = localStorage.getItem('mt_api_key');
   if (storedKey) document.getElementById('api-key').value = storedKey;
+  const storedGKey = localStorage.getItem('mt_gemini_key');
+  if (storedGKey) document.getElementById('gemini-key').value = storedGKey;
   const storedElKey = localStorage.getItem('mt_el_key');
   if (storedElKey) document.getElementById('el-key').value = storedElKey;
 
@@ -203,13 +212,14 @@
 
   function startSession() {
     const apiKey     = document.getElementById('api-key').value.trim();
+    const geminiKey  = document.getElementById('gemini-key').value.trim();
     const elKey      = document.getElementById('el-key').value.trim();
     const name       = document.getElementById('student-name').value.trim();
     const grade      = parseInt(document.getElementById('student-grade').value);
     const classCode  = document.getElementById('class-code').value.trim();
     const jsonRaw    = document.getElementById('wrong-answers-json').value.trim();
 
-    if (!apiKey) { showError('API 키를 입력해주세요.'); return; }
+    if (!apiKey && !geminiKey) { showError('API 키를 입력해주세요. (Anthropic 또는 Gemini)'); return; }
     if (!name)   { showError('학생 이름을 입력해주세요.'); return; }
 
     let wrongAnswers;
@@ -233,7 +243,8 @@
       questionNumber: item.questionNumber || (i + 1),
     }));
 
-    localStorage.setItem('mt_api_key', apiKey);
+    if (apiKey) localStorage.setItem('mt_api_key', apiKey);
+    if (geminiKey) localStorage.setItem('mt_gemini_key', geminiKey);
     if (elKey) localStorage.setItem('mt_el_key', elKey);
 
     const session = {
@@ -249,7 +260,8 @@
     sessionStorage.setItem('mt_session', JSON.stringify(session));
 
     const url = new URL('session.html', window.location.href);
-    url.searchParams.set('key', apiKey);
+    if (apiKey) url.searchParams.set('key', apiKey);
+    if (geminiKey) url.searchParams.set('gkey', geminiKey);
     if (elKey) url.searchParams.set('elkey', elKey);
     window.location.href = url.toString();
   }

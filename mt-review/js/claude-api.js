@@ -7,7 +7,7 @@
 
 const ClaudeAPI = (() => {
 
-  const API_URL = 'https://api.anthropic.com/v1/messages';
+  const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
   /** Per-question conversation history for Socratic loop */
   let _history = [];
@@ -17,19 +17,30 @@ const ClaudeAPI = (() => {
   }
 
   /**
-   * Core fetch wrapper
-   * @param {string} model
+   * Core fetch wrapper — auto-selects Gemini or Claude based on available key
+   * @param {string} model        — Claude model (ignored when using Gemini)
    * @param {string} systemPrompt
    * @param {Array}  messages
    * @param {number} maxTokens
    * @returns {Promise<string>}
    */
   async function callAPI(model, systemPrompt, messages, maxTokens = 600) {
+    if (CONFIG.GEMINI_API_KEY) {
+      // Determine Gemini model: use GEMINI_MODEL_EVAL for haiku, GEMINI_MODEL_CONTENT for sonnet
+      const geminiModel = model === CONFIG.MODEL_EVAL
+        ? CONFIG.GEMINI_MODEL_EVAL
+        : CONFIG.GEMINI_MODEL_CONTENT;
+      return callGemini(geminiModel, systemPrompt, messages, maxTokens);
+    }
+    return callClaude(model, systemPrompt, messages, maxTokens);
+  }
+
+  async function callClaude(model, systemPrompt, messages, maxTokens) {
     if (!CONFIG.ANTHROPIC_API_KEY) {
-      throw new Error('API key not set. Add ?key=sk-ant-... to the URL.');
+      throw new Error('API key not set. Add ?key=sk-ant-... or ?gkey=AIza... to the URL.');
     }
 
-    const resp = await fetch(API_URL, {
+    const resp = await fetch(ANTHROPIC_URL, {
       method: 'POST',
       headers: {
         'x-api-key': CONFIG.ANTHROPIC_API_KEY,
@@ -47,11 +58,36 @@ const ClaudeAPI = (() => {
 
     if (!resp.ok) {
       const err = await resp.text();
-      throw new Error(`API error ${resp.status}: ${err}`);
+      throw new Error(`Claude API error ${resp.status}: ${err}`);
     }
 
     const data = await resp.json();
     return data.content[0].text;
+  }
+
+  async function callGemini(model, systemPrompt, messages, maxTokens) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${CONFIG.GEMINI_API_KEY}`;
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: messages.map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }],
+        })),
+        generationConfig: { maxOutputTokens: maxTokens },
+      }),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(`Gemini API error ${resp.status}: ${err}`);
+    }
+
+    const data = await resp.json();
+    return data.candidates[0].content.parts[0].text;
   }
 
   /**
