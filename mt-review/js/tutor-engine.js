@@ -516,9 +516,30 @@ const TutorEngine = (() => {
     }, 3000);
   }
 
-  function listenWithTimer(statusText, onResult) {
+  const isMobile = () => 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  function _showMicBtn(onTap) {
+    const wrap = $('mic-btn-wrap');
+    const btn  = $('mic-btn');
+    if (!wrap || !btn) { onTap(); return; }   // fallback: no button element
+    wrap.classList.remove('hidden');
+    btn.onclick = () => {
+      wrap.classList.add('hidden');
+      onTap();
+    };
+  }
+
+  // Core listener — always called after any user gesture on mobile
+  function _doListen(statusText, onResult) {
     setStatus('listening', statusText);
-    const restart = () => listenWithTimer(statusText, onResult);
+    const restart = () => {
+      if (isMobile()) {
+        setStatus('listening', '버튼을 눌러 말하세요 🎤');
+        _showMicBtn(() => _doListen(statusText, onResult));
+      } else {
+        _doListen(statusText, onResult);
+      }
+    };
     _resetSilenceTimer(restart);
     STT._onSpeechDetected = () => _resetSilenceTimer(restart);
     STT.listen(async (transcript) => {
@@ -526,6 +547,15 @@ const TutorEngine = (() => {
       STT.stop();
       await onResult(transcript);
     });
+  }
+
+  function listenWithTimer(statusText, onResult) {
+    if (isMobile()) {
+      setStatus('listening', '버튼을 눌러 말하세요 🎤');
+      _showMicBtn(() => _doListen(statusText, onResult));
+    } else {
+      _doListen(statusText, onResult);
+    }
   }
 
   function startListening() {
