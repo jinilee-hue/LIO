@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luna's Review — POLY Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/mt-review.css">
+  <style>
+    /* ── Demo Gate (tap anywhere) ── */
+    #demo-gate {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 12px;
+      background: rgba(8, 10, 22, 0.82);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      cursor: pointer;
+      transition: opacity 0.6s ease;
+    }
+    #demo-gate.fade-out { opacity: 0; pointer-events: none; }
+    #demo-gate-logo {
+      font-size: 14px; font-weight: 700; letter-spacing: 0.14em;
+      color: var(--poly-blue); text-transform: uppercase;
+    }
+    #demo-gate-title {
+      font-size: 28px; font-weight: 700; color: #fff;
+    }
+    #demo-gate-sub {
+      font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 4px;
+    }
+    #demo-gate-hint {
+      font-size: 13px; color: rgba(255,255,255,0.35);
+      margin-top: 24px; letter-spacing: 0.04em;
+      animation: hintPulse 2s ease-in-out infinite;
+    }
+    @keyframes hintPulse {
+      0%,100% { opacity: 0.35; } 50% { opacity: 0.8; }
+    }
+
+    /* ── Speaker label on STT toast ── */
+    #stt-toast .speaker-name {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; opacity: 0.6;
+      margin-right: 6px; color: #a8e6cf;
+    }
+
+    /* ── Status indicator inside content-area ── */
+    #status-indicator { margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<!-- Background -->
+<div id="bg-fallback"></div>
+<video id="bg-video" autoplay muted loop playsinline></video>
+<div id="bg-overlay"></div>
+
+<!-- Background Music -->
+<audio id="bg-music" loop>
+  <source src="assets/music/bg-ambient.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Confetti Canvas -->
+<canvas id="confetti-canvas"></canvas>
+
+<!-- STT Toast -->
+<div id="stt-toast" class="hidden"></div>
+
+<!-- Demo Gate -->
+<div id="demo-gate">
+  <div id="demo-gate-logo">POLY</div>
+  <div id="demo-gate-title">Luna's Review</div>
+  <div id="demo-gate-sub">AI 개인화 튜터 서비스 데모</div>
+  <div id="demo-gate-hint">화면을 터치하면 시작됩니다</div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <div id="top-bar">
+    <div id="brand"><span>POLY</span> · Luna's Review</div>
+    <div id="progress-bar"></div>
+    <div id="q-label">Q <span id="q-current">1</span> / <span id="q-total">2</span></div>
+  </div>
+
+  <div id="content-area">
+    <div id="passage-card" class="hidden">
+      <span class="passage-label">Story</span>
+      <div id="passage-text"></div>
+    </div>
+    <div id="question-card" class="hidden">
+      <div id="question-text"></div>
+      <ul id="options-list"></ul>
+    </div>
+    <div id="status-indicator" class="state-reading">
+      <div class="mic-wave"><span></span><span></span><span></span><span></span><span></span></div>
+      <span id="status-text">Luna is reading…</span>
+    </div>
+  </div>
+</div>
+
+<script src="js/mt-data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/background.js"></script>
+<script>
+/* ─────────────────────────────────────────
+   DEMO CONVERSATION SCRIPT
+   ───────────────────────────────────────── */
+
+const DEMO_ROUNDS = [
+  {
+    content: SAMPLE_GENERATED_CONTENT[0],   // Pip the Rabbit (forest / detail)
+    conversation: [
+      { who: 'student', text: 'B! Because it was raining outside.' },
+      { who: 'luna', lang: 'ko', text: '지수야, 완전 잘했어! B가 딱 맞아! Pip이 비가 와서 집에 있었다는 걸 이야기에서 정확하게 찾았구나. 근데 궁금한 게 있어 — 이야기에서 어떤 부분을 읽고 B라고 생각했어?' },
+      { who: 'student', text: 'The story says the rain fell hard on the leaves, and the ground was wet and muddy outside.' },
+      { who: 'luna', lang: 'ko', text: '오오! 이야기에서 직접 단서를 두 개나 찾았네! "rain fell hard on the leaves"랑 "wet, muddy ground" — 완벽해! 이렇게 이야기 속에서 근거를 찾아서 답하는 게 detail 문제의 핵심이야. 정말 꼼꼼하게 읽었어!' },
+      { who: 'student', text: 'I always try to find clues in the story!' },
+      { who: 'luna', lang: 'ko', text: '지수야, 그 습관이 정말 최고야! 항상 이야기 속에서 근거를 찾는 거, 그게 훌륭한 독자가 하는 거야. 오늘 정말 멋지게 해냈어! 다음 이야기도 같이 해보자~' },
+    ],
+  },
+  {
+    content: SAMPLE_GENERATED_CONTENT[1],   // Autumn (forest / main idea)
+    conversation: [
+      { who: 'student', text: 'C! Autumn brings many beautiful changes to nature.' },
+      { who: 'luna', lang: 'ko', text: '와, C가 딱 맞아! Main idea를 정확하게 잡았어. 이야기에서 여러 가지 내용이 나왔는데, 왜 C가 main idea라고 생각했어?' },
+      { who: 'student', text: 'The passage talks about trees changing color, cool wind, and animals preparing for winter. They all show changes in autumn.' },
+      { who: 'luna', lang: 'ko', text: '완벽한 분석이야! 나무 색이 변하고, 바람이 시원해지고, 동물들이 겨울 준비를 하는 게 모두 "가을의 아름다운 변화"라는 하나의 큰 아이디어로 연결되잖아. 각각의 detail이 모여서 main idea를 만드는 거야. 정말 날카롭게 봤어!' },
+      { who: 'student', text: 'Oh! All the details point to the same big idea.' },
+      { who: 'luna', lang: 'ko', text: '바로 그거야! 그게 main idea 문제의 핵심이야. 지수야, 오늘 두 문제 모두 완벽하게 해냈어! Detail도 잡고 Main idea도 잡고 — 정말 대단해! 앞으로도 이렇게 잘 할 수 있을 거야. 최고야!' },
+    ],
+  },
+];
+
+/* ─────────────────────────────────────────
+   HELPERS
+   ───────────────────────────────────────── */
+
+const $   = id => document.getElementById(id);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+function setStatus(state, text) {
+  const el = $('status-indicator');
+  if (!el) return;
+  el.className = `state-${state}`;
+  const t = $('status-text');
+  if (t && text) t.textContent = text;
+}
+
+function showQuestionCard(content) {
+  $('question-text').textContent = content.question;
+  const list = $('options-list');
+  list.innerHTML = '';
+  ['A','B','C','D'].forEach(key => {
+    const li = document.createElement('li');
+    li.className = 'option-item';
+    li.id = `opt-${key}`;
+    li.innerHTML = `<span class="opt-key">${key}</span><span>${content.options[key]}</span>`;
+    list.appendChild(li);
+  });
+  $('question-card').classList.remove('hidden');
+  $('question-card').classList.add('fade-in');
+}
+
+function highlightCorrect(key) {
+  const el = $(`opt-${key}`);
+  if (el) el.classList.add('correct');
+}
+
+function resetCards() {
+  ['passage-card','question-card'].forEach(id => $(`${id}`)?.classList.add('hidden'));
+  $('passage-text').textContent = '';
+  $('question-text').textContent = '';
+  $('options-list').innerHTML = '';
+}
+
+/* ─────────────────────────────────────────
+   TTS — LUNA
+   ───────────────────────────────────────── */
+
+let _lunaVoiceEn = null;
+let _lunaVoiceKo = null;
+let _studentVoice = null;
+
+function initVoices() {
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) return;
+
+  const EN_LUNA = ['Google UK English Female','Microsoft Aria','Microsoft Jenny','Samantha','Karen','Moira','Google US English'];
+  for (const name of EN_LUNA) {
+    const v = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
+    if (v) { _lunaVoiceEn = v; break; }
+  }
+  if (!_lunaVoiceEn) _lunaVoiceEn = voices.find(v => v.lang.startsWith('en-GB')) || voices.find(v => v.lang.startsWith('en'));
+
+  const KO_VOICES = voices.filter(v => v.lang.startsWith('ko'));
+  _lunaVoiceKo = KO_VOICES.find(v => v.name.includes('Google') || v.name.includes('Microsoft') || !v.localService)
+               || KO_VOICES[0] || null;
+
+  // Student: prefer a different EN voice from Luna
+  const EN_STUDENT = ['Google US English','Microsoft Zira','Microsoft Ana'];
+  for (const name of EN_STUDENT) {
+    const v = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
+    if (v && v !== _lunaVoiceEn) { _studentVoice = v; break; }
+  }
+  if (!_studentVoice) _studentVoice = voices.find(v => v.lang.startsWith('en-US')) || _lunaVoiceEn;
+}
+
+function _tts({ text, voice, lang, rate, pitch }) {
+  return new Promise(resolve => {
+    if (!window.speechSynthesis) { setTimeout(resolve, 1200); return; }
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang   = lang;
+    utt.rate   = rate;
+    utt.pitch  = pitch;
+    utt.volume = 1.0;
+    if (voice) utt.voice = voice;
+
+    let done = false;
+    const finish = () => { if (done) return; done = true; resolve(); };
+    const ms = Math.max(4000, text.length * (lang.startsWith('ko') ? 160 : 100));
+    const timer = setTimeout(finish, ms);
+    utt.onend   = () => { clearTimeout(timer); finish(); };
+    utt.onerror = () => { clearTimeout(timer); finish(); };
+    speechSynthesis.speak(utt);
+  });
+}
+
+function speakLuna(text, lang = 'ko') {
+  setStatus('reading', lang === 'ko' ? 'Luna is speaking…' : 'Luna is reading…');
+  if (lang === 'ko') {
+    return _tts({ text, voice: _lunaVoiceKo, lang: 'ko-KR', rate: 0.92, pitch: 1.0 });
+  }
+  return _tts({ text, voice: _lunaVoiceEn, lang: 'en-GB', rate: 0.88, pitch: 0.92 });
+}
+
+/* ─────────────────────────────────────────
+   TTS — STUDENT  (different voice + tone)
+   ───────────────────────────────────────── */
+
+async function speakStudentLine(text) {
+  // Show STT toast
+  const toast = $('stt-toast');
+  toast.innerHTML = `<span class="speaker-name">Jisu</span>${text}`;
+  toast.classList.remove('hidden');
+  setStatus('listening', 'Your turn! Speak now…');
+
+  await _tts({ text, voice: _studentVoice, lang: 'en-US', rate: 1.05, pitch: 1.25 });
+
+  await wait(700);
+  toast.classList.add('hidden');
+  await wait(300);
+}
+
+/* ─────────────────────────────────────────
+   DEMO ROUND ENGINE
+   ───────────────────────────────────────── */
+
+async function runRound(index) {
+  const round   = DEMO_ROUNDS[index];
+  const content = round.content;
+
+  // Update top bar
+  $('q-current').textContent = index + 1;
+  const pill = $(`pill-${index}`);
+  if (pill) pill.className = 'progress-pill current';
+
+  resetCards();
+  BackgroundManager.setBackground(content.bgKeyword);
+
+  // ── Show passage + read ──
+  setStatus('reading', 'Luna is reading…');
+  $('passage-card').classList.remove('hidden');
+
+  // Typewriter + Luna intro run concurrently
+  const typeP = Utils.typewriter($('passage-text'), content.passage, 26);
+  await speakLuna(content.tutorIntro, 'ko');
+  await speakLuna(content.passage, 'en');
+  await typeP;   // Should be done already
+  await wait(400);
+
+  // ── Show question + read ──
+  showQuestionCard(content);
+  await speakLuna(content.question, 'en');
+  await wait(300);
+
+  setStatus('reading', '…');
+  await speakLuna('자, 이제 정답이 뭘까? A, B, C, D 중에 하나를 말해봐!', 'ko');
+  await wait(1000);   // Pause — "Your turn" moment
+
+  // ── Conversation loop ──
+  let firstStudentDone = false;
+
+  for (const line of round.conversation) {
+    if (line.who === 'student') {
+      await speakStudentLine(line.text);
+
+      if (!firstStudentDone) {
+        firstStudentDone = true;
+        // Correct answer response
+        highlightCorrect(content.answer);
+        Utils.confettiBurst($('confetti-canvas'));
+        setStatus('reading', 'Great job! 🌟');
+        await wait(400);
+      } else {
+        setStatus('thinking', 'Thinking…');
+        await wait(600);
+        setStatus('reading', '…');
+      }
+
+    } else {
+      // Luna line
+      await speakLuna(line.text, line.lang);
+      await wait(350);
+    }
+  }
+
+  // Mark pill done
+  if (pill) pill.className = 'progress-pill done-gold';
+  await wait(1000);
+}
+
+/* ─────────────────────────────────────────
+   MAIN DEMO FLOW
+   ───────────────────────────────────────── */
+
+async function startDemo() {
+  // Fade out gate
+  const gate = $('demo-gate');
+  gate.classList.add('fade-out');
+  setTimeout(() => gate.remove(), 700);
+
+  // Start music
+  const music = $('bg-music');
+  if (music) { music.volume = 0.12; music.play().catch(() => {}); }
+
+  // Build progress pills
+  const bar = $('progress-bar');
+  bar.innerHTML = DEMO_ROUNDS.map((_, i) =>
+    `<div class="progress-pill" id="pill-${i}"></div>`
+  ).join('');
+
+  // Init background
+  BackgroundManager.init();
+
+  // Wait for voices
+  await new Promise(resolve => {
+    const v = speechSynthesis.getVoices();
+    if (v.length) { initVoices(); resolve(); return; }
+    speechSynthesis.addEventListener('voiceschanged', () => { initVoices(); resolve(); }, { once: true });
+    setTimeout(() => { initVoices(); resolve(); }, 1200);
+  });
+
+  // Run rounds
+  for (let i = 0; i < DEMO_ROUNDS.length; i++) {
+    await runRound(i);
+  }
+
+  // End
+  setStatus('reading', '오늘도 수고했어! 🌟');
+  await speakLuna('지수야, 오늘 두 문제 모두 정말 훌륭하게 해냈어! 이야기 속 단서를 찾는 능력이 최고야. 다음에 또 만나자!', 'ko');
+}
+
+// Gate: click or touch anywhere to start
+document.addEventListener('click',     () => startDemo(), { once: true });
+document.addEventListener('touchstart', () => startDemo(), { once: true, passive: true });
+</script>
+
+</body>
+</html>
