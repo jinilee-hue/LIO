@@ -83,7 +83,7 @@
   <div id="top-bar">
     <div id="brand"><span>POLY</span> · Luna's Review</div>
     <div id="progress-bar"></div>
-    <div id="q-label">Q <span id="q-current">1</span> / <span id="q-total">2</span></div>
+    <div id="q-label">Q <span id="q-current">1</span> / <span id="q-total">1</span></div>
   </div>
 
   <div id="content-area">
@@ -117,20 +117,9 @@ const DEMO_ROUNDS = [
       { who: 'student', text: 'B! Because it was raining outside.' },
       { who: 'luna', lang: 'ko', text: '지수야, 완전 잘했어! B가 딱 맞아! Pip이 비가 와서 집에 있었다는 걸 이야기에서 정확하게 찾았구나. 근데 궁금한 게 있어 — 이야기에서 어떤 부분을 읽고 B라고 생각했어?' },
       { who: 'student', text: 'The story says the rain fell hard on the leaves, and the ground was wet and muddy outside.' },
-      { who: 'luna', lang: 'ko', text: '오오! 이야기에서 직접 단서를 두 개나 찾았네! "rain fell hard on the leaves"랑 "wet, muddy ground" — 완벽해! 이렇게 이야기 속에서 근거를 찾아서 답하는 게 detail 문제의 핵심이야. 정말 꼼꼼하게 읽었어!' },
+      { who: 'luna', lang: 'ko', text: '오오! 이야기에서 단서를 두 개나 찾았네! "rain fell hard on the leaves"랑 "wet, muddy ground" — 완벽해! 이렇게 이야기 속에서 근거를 찾아서 답하는 게 detail 문제의 핵심이야. 정말 꼼꼼하게 읽었어!' },
       { who: 'student', text: 'I always try to find clues in the story!' },
-      { who: 'luna', lang: 'ko', text: '지수야, 그 습관이 정말 최고야! 항상 이야기 속에서 근거를 찾는 거, 그게 훌륭한 독자가 하는 거야. 오늘 정말 멋지게 해냈어! 다음 이야기도 같이 해보자~' },
-    ],
-  },
-  {
-    content: SAMPLE_GENERATED_CONTENT[1],   // Autumn (forest / main idea)
-    conversation: [
-      { who: 'student', text: 'C! Autumn brings many beautiful changes to nature.' },
-      { who: 'luna', lang: 'ko', text: '와, C가 딱 맞아! Main idea를 정확하게 잡았어. 이야기에서 여러 가지 내용이 나왔는데, 왜 C가 main idea라고 생각했어?' },
-      { who: 'student', text: 'The passage talks about trees changing color, cool wind, and animals preparing for winter. They all show changes in autumn.' },
-      { who: 'luna', lang: 'ko', text: '완벽한 분석이야! 나무 색이 변하고, 바람이 시원해지고, 동물들이 겨울 준비를 하는 게 모두 "가을의 아름다운 변화"라는 하나의 큰 아이디어로 연결되잖아. 각각의 detail이 모여서 main idea를 만드는 거야. 정말 날카롭게 봤어!' },
-      { who: 'student', text: 'Oh! All the details point to the same big idea.' },
-      { who: 'luna', lang: 'ko', text: '바로 그거야! 그게 main idea 문제의 핵심이야. 지수야, 오늘 두 문제 모두 완벽하게 해냈어! Detail도 잡고 Main idea도 잡고 — 정말 대단해! 앞으로도 이렇게 잘 할 수 있을 거야. 최고야!' },
+      { who: 'luna', lang: 'ko', text: '지수야, 그 습관이 정말 최고야! 항상 이야기 속 근거를 찾는 거, 그게 훌륭한 독자가 하는 거야. 오늘 정말 멋지게 해냈어!' },
     ],
   },
 ];
@@ -209,19 +198,31 @@ function initVoices() {
   if (!_studentVoice) _studentVoice = voices.find(v => v.lang.startsWith('en-US')) || _lunaVoiceEn;
 }
 
-function _tts({ text, voice, lang, rate, pitch }) {
-  return new Promise(resolve => {
-    if (!window.speechSynthesis) { setTimeout(resolve, 1200); return; }
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang   = lang;
-    utt.rate   = rate;
-    utt.pitch  = pitch;
-    utt.volume = 1.0;
-    if (voice) utt.voice = voice;
+async function _tts({ text, voice, lang, rate, pitch }) {
+  if (!window.speechSynthesis) { await wait(1200); return; }
 
+  // Cancel any playing audio and wait for it to fully stop
+  window.speechSynthesis.cancel();
+  await wait(120);
+
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang   = lang;
+  utt.rate   = rate;
+  utt.pitch  = pitch;
+  utt.volume = 1.0;
+  if (voice) utt.voice = voice;
+
+  await new Promise(resolve => {
     let done = false;
-    const finish = () => { if (done) return; done = true; resolve(); };
+    const finish = async () => {
+      if (done) return; done = true;
+      // After onend, verify speaking has actually stopped (Android early-onend bug)
+      for (let i = 0; i < 15; i++) {
+        if (!speechSynthesis.speaking) break;
+        await wait(100);
+      }
+      resolve();
+    };
     const ms = Math.max(4000, text.length * (lang.startsWith('ko') ? 160 : 100));
     const timer = setTimeout(finish, ms);
     utt.onend   = () => { clearTimeout(timer); finish(); };
