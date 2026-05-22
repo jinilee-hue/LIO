@@ -137,32 +137,17 @@ const TutorEngine = (() => {
       if (preferred) utt.voice = preferred;
 
       let resolved = false;
-      let pollId = null;
       const resolve = () => {
         if (resolved) return;
         resolved = true;
-        if (pollId) { clearInterval(pollId); pollId = null; }
         this.speaking = false;
         onEnd?.();
       };
-      const timer = setTimeout(resolve, Math.max(2500, text.length * 75));
+      // 타임아웃만 사용 (폴링 제거 — speaking 오판으로 인한 TTS 중단 방지)
+      // onend가 정상 발화되면 즉시 진행, 안 되면 timeout이 안전망
+      const timer = setTimeout(resolve, Math.max(4000, text.length * 100));
       utt.onend   = () => { clearTimeout(timer); resolve(); };
       utt.onerror = () => { clearTimeout(timer); resolve(); };
-
-      // Android Chrome 버그: onend가 발화되지 않는 경우 대비
-      // speechStarted 플래그: speak()→speaking=false 순간적 false에 속지 않도록
-      setTimeout(() => {
-        if (resolved) return;
-        let speechStarted = false;
-        pollId = setInterval(() => {
-          if (window.speechSynthesis.speaking) {
-            speechStarted = true;
-          } else if (speechStarted) {
-            clearTimeout(timer);
-            resolve();
-          }
-        }, 250);
-      }, 400);
 
       speechSynthesis.speak(utt);
     },
@@ -198,31 +183,15 @@ const TutorEngine = (() => {
       if (koVoice) utt.voice = koVoice;
 
       let resolved = false;
-      let pollId = null;
       const resolve = () => {
         if (resolved) return;
         resolved = true;
-        if (pollId) { clearInterval(pollId); pollId = null; }
         this.speaking = false;
         onEnd?.();
       };
-      const timer = setTimeout(resolve, Math.max(2500, text.length * 100));
+      const timer = setTimeout(resolve, Math.max(4000, text.length * 160));
       utt.onend   = () => { clearTimeout(timer); resolve(); };
       utt.onerror = () => { clearTimeout(timer); resolve(); };
-
-      // Android Chrome 버그: onend 미발화 대비 — speechStarted 플래그로 오판 방지
-      setTimeout(() => {
-        if (resolved) return;
-        let speechStarted = false;
-        pollId = setInterval(() => {
-          if (window.speechSynthesis.speaking) {
-            speechStarted = true;
-          } else if (speechStarted) {
-            clearTimeout(timer);
-            resolve();
-          }
-        }, 250);
-      }, 400);
 
       speechSynthesis.speak(utt);
     },
