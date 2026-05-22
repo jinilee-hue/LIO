@@ -232,17 +232,8 @@ function speakLuna(text, lang = 'ko') {
    ───────────────────────────────────────── */
 
 async function speakStudentLine(text) {
-  // Show STT toast
-  const toast = $('stt-toast');
-  toast.innerHTML = `<span class="speaker-name">Jisu</span>${text}`;
-  toast.classList.remove('hidden');
-  setStatus('listening', 'Your turn! Speak now…');
-
   await _tts({ text, voice: _studentVoice, lang: 'en-US', rate: 1.05, pitch: 1.25 });
-
-  await wait(700);
-  toast.classList.add('hidden');
-  await wait(300);
+  await wait(400);
 }
 
 /* ─────────────────────────────────────────
