@@ -112,7 +112,7 @@
       color: var(--gray-400);
       margin-top: 4px;
     }
-    #api-key-field input, #el-key-field input { font-family: monospace; font-size: 13px; letter-spacing: 0.02em; }
+    #api-key-field input, #g-key-field input { font-family: monospace; font-size: 13px; letter-spacing: 0.02em; }
     .key-row { display: flex; gap: var(--sp-md); }
     .key-row .field { flex: 1; }
     .badge-optional {
@@ -137,14 +137,14 @@
 
   <div class="key-row">
     <div class="field" id="api-key-field">
-      <label>Anthropic API Key</label>
+      <label>Anthropic API Key <span class="badge-optional">문제 생성</span></label>
       <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off">
-      <p class="hint">문제 생성·평가에 사용</p>
+      <p class="hint">데모 모드에서는 불필요</p>
     </div>
-    <div class="field" id="el-key-field">
-      <label>ElevenLabs API Key <span class="badge-optional">고품질 TTS</span></label>
-      <input type="password" id="el-key" placeholder="sk_..." autocomplete="off">
-      <p class="hint">없으면 기본 음성으로 대체</p>
+    <div class="field" id="g-key-field">
+      <label>Gemini API Key <span class="badge-optional">필수 · AI 음성</span></label>
+      <input type="password" id="g-key" placeholder="AIza..." autocomplete="off">
+      <p class="hint">Google AI Studio에서 발급</p>
     </div>
   </div>
 
@@ -185,15 +185,15 @@
   <div id="error-msg"></div>
 
   <button class="btn-primary" onclick="startSession()">시작하기 →</button>
-  <a class="btn-demo" href="session.html?demo=true">샘플 데이터로 데모 시작</a>
+  <button class="btn-demo" onclick="startDemo()">샘플 데이터로 데모 시작</button>
 </div>
 
 <script>
   // Pre-fill API keys from localStorage
   const storedKey = localStorage.getItem('mt_api_key');
   if (storedKey) document.getElementById('api-key').value = storedKey;
-  const storedElKey = localStorage.getItem('mt_el_key');
-  if (storedElKey) document.getElementById('el-key').value = storedElKey;
+  const storedGKey = localStorage.getItem('mt_gemini_key');
+  if (storedGKey) document.getElementById('g-key').value = storedGKey;
 
   function showError(msg) {
     const el = document.getElementById('error-msg');
@@ -202,14 +202,15 @@
   }
 
   function startSession() {
-    const apiKey     = document.getElementById('api-key').value.trim();
-    const elKey      = document.getElementById('el-key').value.trim();
-    const name       = document.getElementById('student-name').value.trim();
-    const grade      = parseInt(document.getElementById('student-grade').value);
-    const classCode  = document.getElementById('class-code').value.trim();
-    const jsonRaw    = document.getElementById('wrong-answers-json').value.trim();
+    const apiKey    = document.getElementById('api-key').value.trim();
+    const gKey      = document.getElementById('g-key').value.trim();
+    const name      = document.getElementById('student-name').value.trim();
+    const grade     = parseInt(document.getElementById('student-grade').value);
+    const classCode = document.getElementById('class-code').value.trim();
+    const jsonRaw   = document.getElementById('wrong-answers-json').value.trim();
 
-    if (!apiKey) { showError('API 키를 입력해주세요.'); return; }
+    if (!gKey)   { showError('Gemini API 키를 입력해주세요.'); return; }
+    if (!apiKey) { showError('Anthropic API 키를 입력해주세요.'); return; }
     if (!name)   { showError('학생 이름을 입력해주세요.'); return; }
 
     let wrongAnswers;
@@ -221,7 +222,6 @@
       return;
     }
 
-    // Normalize items (add ids & defaults)
     wrongAnswers = wrongAnswers.map((item, i) => ({
       id: item.id || `wa-${i}`,
       topic: item.topic || 'general',
@@ -234,23 +234,27 @@
     }));
 
     localStorage.setItem('mt_api_key', apiKey);
-    if (elKey) localStorage.setItem('mt_el_key', elKey);
+    localStorage.setItem('mt_gemini_key', gKey);
 
     const session = {
-      student: {
-        id: `student-${Date.now()}`,
-        name,
-        grade,
-        classCode,
-        mtDate: new Date().toISOString().split('T')[0],
-      },
+      student: { id: `student-${Date.now()}`, name, grade, classCode, mtDate: new Date().toISOString().split('T')[0] },
       wrongAnswers,
     };
     sessionStorage.setItem('mt_session', JSON.stringify(session));
 
     const url = new URL('session.html', window.location.href);
     url.searchParams.set('key', apiKey);
-    if (elKey) url.searchParams.set('elkey', elKey);
+    url.searchParams.set('gkey', gKey);
+    window.location.href = url.toString();
+  }
+
+  function startDemo() {
+    const gKey = document.getElementById('g-key').value.trim();
+    if (!gKey) { showError('데모 시작 전 Gemini API 키를 입력해주세요.'); return; }
+    localStorage.setItem('mt_gemini_key', gKey);
+    const url = new URL('session.html', window.location.href);
+    url.searchParams.set('demo', 'true');
+    url.searchParams.set('gkey', gKey);
     window.location.href = url.toString();
   }
 </script>

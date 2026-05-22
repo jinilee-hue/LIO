@@ -4,11 +4,8 @@
 
 const CONFIG = {
   ANTHROPIC_API_KEY: '',
-  ELEVENLABS_API_KEY: '',
-  ELEVENLABS_VOICE_ID: '21m00Tcm4TlvDq8ikWAM', // Rachel — 따뜻하고 친근한 여성
+  GEMINI_API_KEY:    '',
   MODEL_CONTENT: 'claude-sonnet-4-5',
-  MODEL_EVAL:    'claude-haiku-4-5-20251001',
-  MAX_ATTEMPTS_BEFORE_SCAFFOLD: 3,
   MUSIC_VOLUME: 0.12,
 };
 
@@ -20,9 +17,9 @@ const CONFIG = {
   if (urlKey) { CONFIG.ANTHROPIC_API_KEY = urlKey; localStorage.setItem('mt_api_key', urlKey); }
   else { const s = localStorage.getItem('mt_api_key'); if (s) CONFIG.ANTHROPIC_API_KEY = s; }
 
-  const elKey = params.get('elkey');
-  if (elKey) { CONFIG.ELEVENLABS_API_KEY = elKey; localStorage.setItem('mt_el_key', elKey); }
-  else { const s = localStorage.getItem('mt_el_key'); if (s) CONFIG.ELEVENLABS_API_KEY = s; }
+  const gKey = params.get('gkey');
+  if (gKey) { CONFIG.GEMINI_API_KEY = gKey; localStorage.setItem('mt_gemini_key', gKey); }
+  else { const s = localStorage.getItem('mt_gemini_key'); if (s) CONFIG.GEMINI_API_KEY = s; }
 })();
 
 /* ─────────────────────────────────────────────
