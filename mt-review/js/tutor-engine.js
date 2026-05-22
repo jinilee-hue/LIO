@@ -115,10 +115,13 @@ const TutorEngine = (() => {
       this.speaking = true;
 
       const utt = new SpeechSynthesisUtterance(text);
-      utt.lang = 'en-US'; utt.rate = 0.92; utt.pitch = 1.15; utt.volume = 1.0;
+      utt.lang = 'en-US'; utt.rate = 0.90; utt.pitch = 1.0; utt.volume = 1.0;
 
+      // UK Female sounds more mature/warm than US English on Android Chrome
       const FEMALE_PREFS = [
-        'Google US English', 'Microsoft Aria', 'Microsoft Jenny',
+        'Google UK English Female',
+        'Microsoft Aria', 'Microsoft Jenny',
+        'Google US English',
         'Microsoft Ana', 'Microsoft Zira', 'Samantha', 'Karen', 'Moira',
       ];
       const voices = speechSynthesis.getVoices();
@@ -128,6 +131,7 @@ const TutorEngine = (() => {
         if (preferred) break;
       }
       if (!preferred) preferred = voices.find(v => v.lang === 'en-US' && !v.localService);
+      if (!preferred) preferred = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'));
       if (!preferred) preferred = voices.find(v => v.lang.startsWith('en'));
       if (preferred) utt.voice = preferred;
 
@@ -224,14 +228,23 @@ const TutorEngine = (() => {
       };
 
       this.recognition.onerror = (e) => {
-        if (e.error === 'no-speech' && this.active) {
-          // Restart listening if we were still waiting
-          this._restart();
+        console.warn('[STT] error:', e.error);
+        // not-allowed / audio-capture: 복구 불가 — active 해제
+        if (e.error === 'not-allowed' || e.error === 'audio-capture') {
+          this.active = false;
         }
+        // 그 외 (no-speech, network 등)는 onend 에서 재시작
       };
 
+      // onend: active가 true면 계속 듣는 중 → 즉시 재시작
+      // stop()은 active를 먼저 false로 바꾼 뒤 recognition.stop()을 호출하므로
+      // 여기 도달할 때는 이미 false → 재시작 안 함
       this.recognition.onend = () => {
-        this.active = false;
+        if (!this.active) return;
+        setTimeout(() => {
+          if (!this.active) return;
+          try { this.recognition.start(); } catch (_) {}
+        }, 200);
       };
     },
 
@@ -243,7 +256,7 @@ const TutorEngine = (() => {
     },
 
     stop() {
-      this.active = false;
+      this.active = false;          // 먼저 false → onend가 재시작하지 않도록
       this._onResult = null;
       this._onSpeechDetected = null;
       try { this.recognition?.stop(); } catch (_) {}
@@ -252,8 +265,9 @@ const TutorEngine = (() => {
     _restart() {
       if (!this.active || !this._onResult) return;
       setTimeout(() => {
+        if (!this.active) return;
         try { this.recognition.start(); } catch (_) {}
-      }, 300);
+      }, 200);
     },
   };
 
