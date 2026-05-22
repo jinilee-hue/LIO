@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MT Review — AI 개인화 튜터 서비스 UI/UX 보고서</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --ink-muted: #888;
+    --line: #e3e1d9;
+    --line-strong: #ccc8be;
+    --poly-blue: #0066FF;
+    --poly-blue-soft: rgba(0, 102, 255, 0.08);
+    --service-dark: #080A16;
+    --service-dark-2: #0a1230;
+    --gold: #F6D860;
+    --correct: #22C55E;
+    --warn: #c4302b;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+    --display: 'Bricolage Grotesque', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+    --serif: 'Instrument Serif', serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ============================================================ */
+  /* LAYOUT                                                       */
+  /* ============================================================ */
+  .layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ============================================================ */
+  /* SIDEBAR                                                      */
+  /* ============================================================ */
+  .sidebar {
+    background: #141414;
+    color: white;
+    padding: 56px 32px 40px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+
+  .sidebar .brand {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 26px;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .sidebar .brand .dot {
+    color: var(--poly-blue);
+  }
+  .sidebar .brand-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 56px;
+  }
+
+  .sidebar .toc-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .sidebar nav { display: flex; flex-direction: column; gap: 1px; }
+  .sidebar nav a {
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    text-decoration: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.18s ease;
+    position: relative;
+  }
+  .sidebar nav a .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    font-variant-numeric: tabular-nums;
+    width: 18px;
+  }
+  .sidebar nav a:hover {
+    background: rgba(255,255,255,0.04);
+    color: white;
+  }
+  .sidebar nav a.active {
+    background: var(--poly-blue);
+    color: white;
+  }
+  .sidebar nav a.active .num { color: rgba(255,255,255,0.7); }
+
+  .sidebar .demo-pill {
+    margin-top: 24px;
+    padding: 16px 14px;
+    background: rgba(0, 102, 255, 0.1);
+    border: 1px solid rgba(0, 102, 255, 0.25);
+    border-radius: 8px;
+    text-decoration: none;
+    color: white;
+    display: block;
+    transition: all 0.2s;
+  }
+  .sidebar .demo-pill:hover {
+    background: rgba(0, 102, 255, 0.18);
+    transform: translateY(-1px);
+  }
+  .sidebar .demo-pill .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--poly-blue);
+    margin-bottom: 4px;
+  }
+  .sidebar .demo-pill .title {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sidebar .demo-pill .title .arrow {
+    transition: transform 0.2s;
+  }
+  .sidebar .demo-pill:hover .title .arrow {
+    transform: translateX(3px);
+  }
+
+  .sidebar .footer-meta {
+    margin-top: auto;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.35);
+    line-height: 1.8;
+  }
+
+  /* ============================================================ */
+  /* MAIN                                                         */
+  /* ============================================================ */
+  .main {
+    padding: 72px 100px 120px;
+    max-width: 1080px;
+  }
+
+  /* DOC HEADER */
+  .doc-head {
+    padding-bottom: 36px;
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .doc-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--poly-blue);
+    margin-bottom: 24px;
+  }
+  .doc-tag::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--poly-blue);
+    border-radius: 50%;
+  }
+  .doc-head h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 56px;
+    line-height: 1.02;
+    letter-spacing: -0.038em;
+    margin-bottom: 24px;
+    max-width: 880px;
+  }
+  .doc-head h1 .accent {
+    color: var(--poly-blue);
+    font-style: italic;
+    font-family: var(--serif);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .doc-head .lead {
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 720px;
+    font-weight: 300;
+  }
+
+  /* META GRID */
+  .meta-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 80px;
+  }
+  .meta-cell {
+    padding: 24px 24px 24px 0;
+    border-right: 1px solid var(--line);
+  }
+  .meta-cell:not(:first-child) { padding-left: 24px; }
+  .meta-cell:last-child { border-right: none; }
+  .meta-cell .k {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+  .meta-cell .v {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+  }
+  .meta-cell .v .small {
+    font-family: var(--sans);
+    font-weight: 400;
+    color: var(--ink-muted);
+    font-size: 13px;
+    letter-spacing: 0;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* SECTION */
+  section.block { margin-bottom: 96px; }
+  section.block:last-child { margin-bottom: 0; }
+  .sec-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--poly-blue);
+    margin-bottom: 10px;
+  }
+  section.block h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 38px;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    margin-bottom: 12px;
+  }
+  section.block h2 .accent {
+    color: var(--poly-blue);
+    font-family: var(--serif);
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: -0.02em;
+  }
+  .sec-sub {
+    font-size: 15px;
+    color: var(--ink-muted);
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed var(--line-strong);
+  }
+
+  p.body { font-size: 15.5px; line-height: 1.7; color: var(--ink-soft); margin-bottom: 16px; }
+  p.body strong { color: var(--ink); font-weight: 600; }
+
+  /* CALLOUT */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 24px 28px;
+    border-radius: 4px;
+    margin: 28px 0;
+  }
+  .callout .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--poly-blue);
+    margin-bottom: 8px;
+  }
+  .callout p {
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+
+  /* COMPARISON TABLE */
+  .compare-table {
+    width: 100%;
+    margin: 32px 0;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .compare-table thead th {
+    text-align: left;
+    padding: 14px 18px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    border-bottom: 1px solid var(--line-strong);
+    background: transparent;
+  }
+  .compare-table thead th.target {
+    color: var(--poly-blue);
+  }
+  .compare-table tbody td {
+    padding: 18px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  .compare-table tbody td.before {
+    color: var(--ink-muted);
+    text-decoration: line-through;
+    text-decoration-color: rgba(196, 48, 43, 0.4);
+    text-decoration-thickness: 1px;
+  }
+  .compare-table tbody td.after {
+    color: var(--ink);
+    font-weight: 500;
+    background: rgba(0, 102, 255, 0.02);
+  }
+  .compare-table tbody tr:last-child td { border-bottom: none; }
+
+  /* 3 PHILOSOPHY CARDS */
+  .philo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin: 32px 0;
+  }
+  .philo-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 28px 26px 30px;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .philo-card:hover {
+    border-color: var(--poly-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.04);
+  }
+  .philo-card .n {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--poly-blue);
+    margin-bottom: 16px;
+  }
+  .philo-card h3 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 21px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+  }
+  .philo-card p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+  }
+  .philo-card .quote {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.45;
+  }
+
+  /* DIALOGUE BOXES */
+  .dialogue-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 32px 0;
+  }
+  .dialogue {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 20px 22px;
+  }
+  .dialogue .head {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--line);
+    display: flex;
+    justify-content: space-between;
+  }
+  .dialogue.correct .head .tag { color: var(--correct); }
+  .dialogue.wrong .head .tag { color: var(--warn); }
+  .dialogue .turn {
+    display: grid;
+    grid-template-columns: 50px 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+  .dialogue .turn:last-child { margin-bottom: 0; }
+  .dialogue .turn .speaker {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    padding-top: 2px;
+  }
+  .dialogue .turn.luna .speaker { color: var(--poly-blue); font-weight: 600; }
+  .dialogue .turn.student .speaker { color: var(--ink); }
+  .dialogue .turn .text { color: var(--ink); }
+  .dialogue .turn.luna .text { font-weight: 500; }
+
+  /* UI WIRE — 실제 mockup */
+  .ui-wire {
+    background: linear-gradient(135deg, var(--service-dark) 0%, var(--service-dark-2) 100%);
+    border-radius: 12px;
+    padding: 28px;
+    margin: 32px 0;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .ui-wire::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at top right, rgba(0, 102, 255, 0.15), transparent 60%),
+                radial-gradient(ellipse at bottom left, rgba(246, 216, 96, 0.08), transparent 50%);
+    pointer-events: none;
+  }
+  .ui-wire .wire-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .ui-wire .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 22px;
+    position: relative;
+  }
+  .ui-wire .topbar .left {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: -0.01em;
+  }
+  .ui-wire .topbar .progress {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+  .ui-wire .progress .pill {
+    width: 32px;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.12);
+  }
+  .ui-wire .progress .pill.done {
+    background: var(--gold);
+    box-shadow: 0 0 12px rgba(246, 216, 96, 0.4);
+  }
+  .ui-wire .progress .pill.current {
+    background: var(--poly-blue);
+  }
+  .ui-wire .topbar .qnum {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+  }
+  .ui-wire .story-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .ui-wire .story-card .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 8px;
+  }
+  .ui-wire .story-card .text {
+    font-size: 15px;
+    line-height: 1.65;
+    color: rgba(255,255,255,0.92);
+  }
+  .ui-wire .q-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 10px;
+    padding: 18px 20px;
+    position: relative;
+  }
+  .ui-wire .q-card .q {
+    font-size: 14px;
+    color: rgba(255,255,255,0.92);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .ui-wire .q-card .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .ui-wire .choice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid transparent;
+  }
+  .ui-wire .choice.correct {
+    background: rgba(34, 197, 94, 0.16);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: white;
+  }
+  .ui-wire .choice .key {
+    font-family: var(--mono);
+    font-size: 10px;
+    width: 18px;
+    height: 18px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ui-wire .choice.correct .key {
+    background: var(--correct);
+    color: white;
+    font-weight: 600;
+  }
+  .ui-wire .choice .checkmark {
+    margin-left: auto;
+    color: var(--correct);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .ui-wire-annotations {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .ui-wire-annotations .a {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .ui-wire-annotations .a strong {
+    color: var(--ink);
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    letter-spacing: -0.005em;
+  }
+
+  /* COLOR / MOTION TABLES */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 14px;
+  }
+  .data-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    border-bottom: 1px solid var(--line-strong);
+    font-weight: 500;
+  }
+  .data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .data-table tbody tr:hover { background: rgba(0,0,0,0.015); }
+  .swatch {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .swatch .chip {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  .swatch .code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+  }
+
+  /* DEMO EMBED */
+  .demo-wrap {
+    margin: 32px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--service-dark);
+    position: relative;
+  }
+  .demo-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: #f4f3ee;
+    border-bottom: 1px solid var(--line);
+  }
+  .demo-toolbar .left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .demo-toolbar .dots {
+    display: flex;
+    gap: 6px;
+  }
+  .demo-toolbar .dots span {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #d8d6cf;
+  }
+  .demo-toolbar .url {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-muted);
+    background: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    max-width: 480px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .demo-toolbar .open-btn {
+    text-decoration: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: white;
+    background: var(--poly-blue);
+    padding: 8px 14px;
+    border-radius: 4px;
+    transition: all 0.18s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .demo-toolbar .open-btn:hover {
+    background: #0052cc;
+    transform: translateY(-1px);
+  }
+  .demo-iframe {
+    width: 100%;
+    height: 600px;
+    border: none;
+    display: block;
+    background: var(--service-dark);
+  }
+  .demo-fallback {
+    display: none;
+    padding: 60px 40px;
+    text-align: center;
+    color: white;
+  }
+  .demo-fallback.visible { display: block; }
+  .demo-fallback h4 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 22px;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+  .demo-fallback p {
+    color: rgba(255,255,255,0.6);
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  .demo-fallback .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--poly-blue);
+    color: white;
+    padding: 14px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .demo-fallback .btn:hover {
+    background: #0052cc;
+    transform: translateY(-2px);
+  }
+
+  /* VOICE 섹션 */
+  .voice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 32px 0;
+  }
+  .voice-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 24px 26px;
+  }
+  .voice-card .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--line-strong);
+  }
+  .voice-card h4 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: -0.015em;
+  }
+  .voice-card .meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-muted);
+    letter-spacing: 0.12em;
+  }
+  .voice-card p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .voice-card .props {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 18px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+  .voice-card .props strong { color: var(--ink); font-weight: 600; }
+
+  /* STATUS / CHECKLIST */
+  .status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 32px;
+    margin: 24px 0;
+  }
+  .status-item {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .status-item .ind {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+  .status-item.done .ind { background: var(--correct); }
+  .status-item.todo .ind {
+    background: white;
+    border: 1.5px dashed var(--ink-muted);
+    color: var(--ink-muted);
+  }
+  .status-item .label { color: var(--ink); }
+  .status-item .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .status-item.done .tag { color: var(--correct); }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    margin: 20px 0 32px;
+  }
+  .progress-bar .top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    align-items: baseline;
+  }
+  .progress-bar .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .progress-bar .pct {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.025em;
+  }
+  .progress-bar .pct .small {
+    font-size: 16px;
+    color: var(--ink-muted);
+    font-weight: 400;
+  }
+  .progress-bar .bar {
+    height: 8px;
+    background: var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-bar .fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--poly-blue) 0%, #4d8eff 100%);
+    border-radius: 4px;
+    transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 0;
+  }
+
+  /* ROADMAP */
+  .roadmap {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 28px 0;
+  }
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 24px 22px;
+  }
+  .phase .h {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .phase .h .name {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+  }
+  .phase .h .when {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .phase ul {
+    list-style: none;
+    padding: 0;
+  }
+  .phase ul li {
+    font-size: 13.5px;
+    line-height: 1.55;
+    padding: 8px 0 8px 18px;
+    position: relative;
+    color: var(--ink-soft);
+  }
+  .phase ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--poly-blue);
+    font-weight: 600;
+  }
+
+  /* TECH ARCHITECTURE */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 28px 0;
+  }
+  .tech-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 22px 22px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .tech-card::before {
+    display: none;
+  }
+  .tech-card .tech-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--poly-blue);
+    margin-bottom: 10px;
+  }
+  .tech-card h4 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+  .tech-card p {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .tech-card p strong { color: var(--ink); font-weight: 600; }
+
+  /* IMPACT CALLOUT — 기대 효과 */
+  .impact-callout {
+    margin: 40px 0 0;
+    padding: 32px 36px;
+    background: linear-gradient(135deg, #fafaf7 0%, #f4f3ec 100%);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    position: relative;
+  }
+  .impact-callout .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--poly-blue);
+    margin-bottom: 14px;
+  }
+  .impact-callout h3 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    margin-bottom: 16px;
+  }
+  .impact-callout h3 .accent {
+    color: var(--poly-blue);
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+  }
+  .impact-callout p {
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+  }
+  .impact-callout p:last-child { margin-bottom: 0; }
+  .impact-callout p strong { color: var(--ink); font-weight: 600; }
+  .impact-callout .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line-strong);
+  }
+  .impact-callout .metric {
+    padding: 0 20px;
+    border-right: 1px solid var(--line);
+  }
+  .impact-callout .metric:first-child { padding-left: 0; }
+  .impact-callout .metric:last-child { padding-right: 0; border-right: none; }
+  .impact-callout .metric .num {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--poly-blue);
+    margin-bottom: 6px;
+  }
+  .impact-callout .metric .desc {
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+
+  /* TECH/IMPACT mobile */
+  @media (max-width: 900px) {
+    .tech-grid { grid-template-columns: 1fr; }
+    .impact-callout .metrics { grid-template-columns: 1fr; gap: 16px; }
+    .impact-callout .metric { padding: 12px 0; border-right: none; border-bottom: 1px solid var(--line); }
+    .impact-callout .metric:last-child { border-bottom: none; }
+  }
+
+  .doc-footer {
+    margin-top: 96px;
+    padding-top: 40px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+  }
+  .doc-footer .summary {
+    flex: 1;
+  }
+  .doc-footer .summary .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 16px;
+  }
+  .doc-footer .summary blockquote {
+    font-family: var(--serif);
+    font-size: 28px;
+    line-height: 1.25;
+    font-style: italic;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    max-width: 620px;
+  }
+  .doc-footer .summary blockquote .accent {
+    color: var(--poly-blue);
+  }
+  .doc-footer .end-mark {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+  }
+  .doc-footer .end-mark::before {
+    content: '◆';
+    color: var(--poly-blue);
+    margin-right: 6px;
+  }
+
+  /* ========== Page load animation ========== */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .reveal {
+    opacity: 0;
+    animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .reveal-1 { animation-delay: 0.05s; }
+  .reveal-2 { animation-delay: 0.15s; }
+  .reveal-3 { animation-delay: 0.25s; }
+  .reveal-4 { animation-delay: 0.35s; }
+  .reveal-5 { animation-delay: 0.45s; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) {
+    .main { padding: 64px 60px 100px; }
+    .meta-row { grid-template-columns: repeat(2, 1fr); }
+    .meta-cell:nth-child(2) { border-right: none; }
+    .meta-cell:nth-child(3), .meta-cell:nth-child(4) { border-top: 1px solid var(--line); }
+    .doc-head h1 { font-size: 44px; }
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar {
+      position: relative;
+      height: auto;
+      padding: 32px 24px;
+    }
+    .main { padding: 48px 24px 80px; }
+    .doc-head h1 { font-size: 36px; }
+    .philo-grid, .roadmap, .voice-grid, .ui-wire-annotations,
+    .status-grid, .dialogue-pair { grid-template-columns: 1fr; }
+  }
+
+  /* IMPL FLOW */
+  .impl-flow { margin: 32px 0; }
+  .iflow-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .iflow-cards {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 0;
+  }
+  .iflow-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .iflow-card .cn {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--poly-blue);
+    margin-bottom: 6px;
+  }
+  .iflow-card .ct {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.015em;
+    margin-bottom: 5px;
+    color: var(--ink);
+  }
+  .iflow-card .cd {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .iflow-card .cb {
+    display: inline-block;
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--poly-blue);
+    background: var(--poly-blue-soft);
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,102,255,0.15);
+  }
+  .iflow-h-arr {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    color: var(--poly-blue);
+    font-size: 20px;
+    line-height: 1;
+  }
+  .iflow-v-arr {
+    text-align: center;
+    padding: 14px 0;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  .iflow-v-arr::before {
+    content: '↓';
+    font-size: 20px;
+    color: var(--poly-blue);
+    font-style: normal;
+  }
+  .iflow-loop-box {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px 18px 18px;
+    position: relative;
+  }
+  .iflow-loop-box .loop-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg);
+    padding: 2px 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--poly-blue);
+    border: 1px solid rgba(0,102,255,0.25);
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .iflow-loop-inner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    align-items: stretch;
+    gap: 0;
+  }
+  .iflow-loop-step {
+    background: rgba(0,102,255,0.04);
+    border: 1px solid rgba(0,102,255,0.12);
+    border-radius: 6px;
+    padding: 13px 14px;
+  }
+  .iflow-loop-step .ls-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--poly-blue);
+    margin-bottom: 5px;
+  }
+  .iflow-loop-step .ls-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: -0.01em;
+    margin-bottom: 5px;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .iflow-loop-step .ls-desc {
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .iflow-loop-arr {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    color: rgba(0,102,255,0.5);
+    font-size: 16px;
+  }
+  .iflow-branch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .iflow-branch-item {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 18px;
+    background: var(--surface);
+  }
+  .iflow-branch-item.correct {
+    border-color: rgba(34,197,94,0.3);
+    background: rgba(34,197,94,0.025);
+  }
+  .iflow-branch-item.wrong {
+    border-color: rgba(196,48,43,0.2);
+    background: rgba(196,48,43,0.02);
+  }
+  .iflow-branch-item .bh {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--line-strong);
+    font-weight: 600;
+  }
+  .iflow-branch-item.correct .bh { color: var(--correct); }
+  .iflow-branch-item.wrong .bh { color: var(--warn); }
+  .iflow-branch-item ul { list-style: none; padding: 0; }
+  .iflow-branch-item ul li {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    padding: 6px 0 6px 16px;
+    position: relative;
+    border-bottom: 1px solid var(--line);
+  }
+  .iflow-branch-item ul li:last-child { border-bottom: none; }
+  .iflow-branch-item.correct ul li::before { content: '→'; position: absolute; left: 0; color: var(--correct); font-weight: 700; }
+  .iflow-branch-item.wrong ul li::before { content: '→'; position: absolute; left: 0; color: var(--warn); font-weight: 700; }
+  .iflow-merge {
+    text-align: center;
+    padding: 14px 0;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .iflow-merge::before, .iflow-merge::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  .iflow-end { display: flex; justify-content: center; }
+  .iflow-end-card {
+    background: var(--surface);
+    border: 1.5px solid var(--poly-blue);
+    border-radius: 8px;
+    padding: 20px 32px;
+    text-align: center;
+    max-width: 360px;
+    width: 100%;
+  }
+  .iflow-end-card .ec-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--poly-blue);
+    margin-bottom: 8px;
+  }
+  .iflow-end-card .ec-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .iflow-end-card .ec-desc {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  @media (max-width: 900px) {
+    .iflow-cards { grid-template-columns: 1fr; }
+    .iflow-h-arr { transform: rotate(90deg); padding: 4px 0; }
+    .iflow-loop-inner { grid-template-columns: 1fr; }
+    .iflow-loop-arr { transform: rotate(90deg); padding: 4px 0; justify-content: center; }
+    .iflow-branch { grid-template-columns: 1fr; }
+  }
+
+  @media print {
+    .sidebar { display: none; }
+    .layout { grid-template-columns: 1fr; }
+    .demo-wrap { page-break-inside: avoid; }
+    .reveal { animation: none; opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ============================================================ -->
+  <!-- SIDEBAR                                                      -->
+  <!-- ============================================================ -->
+  <aside class="sidebar">
+    <div class="brand">POLY<span class="dot">.</span></div>
+    <div class="brand-sub">UX·UI Proposal</div>
+
+    <nav id="toc">
+      <a href="#sec-overview" class="active"><span class="num">01</span>Overview</a>
+      <a href="#sec-philosophy"><span class="num">02</span>UX 철학</a>
+      <a href="#sec-layout"><span class="num">03</span>레이아웃</a>
+      <a href="#sec-voice"><span class="num">04</span>음성 경험</a>
+      <a href="#sec-status"><span class="num">05</span>현황·기술·임팩트</a>
+    </nav>
+
+    <a href="https://jinilee-hue.github.io/LIO/mt-review/demo-auto.html" target="_blank" rel="noopener" class="demo-pill">
+      <div class="label">▶ Live Demo</div>
+      <div class="title">데모 실행하기 <span class="arrow">→</span></div>
+    </a>
+
+    <div class="footer-meta">
+      2026 · 05 · 22<br>
+      Made by JINI<br>
+      Version 1.0
+    </div>
+  </aside>
+
+  <!-- ============================================================ -->
+  <!-- MAIN                                                         -->
+  <!-- ============================================================ -->
+  <main class="main">
+
+    <header class="doc-head reveal reveal-1">
+      <div class="doc-tag">Case Study · MT Review</div>
+      <h1>학생은 화면을 보지 않는다.<br><span class="accent">Luna의 목소리</span>를 듣는다.</h1>
+      <p class="lead">POLY 영어학원 1~3학년 학생을 위한 AI 개인화 음성 튜터. 채팅 버블도, 캐릭터 일러스트도 없이 — 학생은 말로 답하고, Luna는 목소리로만 존재한다.</p>
+    </header>
+
+    <div class="meta-row reveal reveal-2">
+      <div class="meta-cell">
+        <div class="k">서비스명</div>
+        <div class="v">MT Review<span class="small">Monthly Test 복습</span></div>
+      </div>
+      <div class="meta-cell">
+        <div class="k">대상 학년</div>
+        <div class="v">POLY 1~3<span class="small">초등 중·고학년</span></div>
+      </div>
+      <div class="meta-cell">
+        <div class="k">AI 모델</div>
+        <div class="v">Claude · Gemini<span class="small">지문 생성 · 답변 평가</span></div>
+      </div>
+      <div class="meta-cell">
+        <div class="k">다음 목표</div>
+        <div class="v">Phase A<span class="small">완성도 · 단기 목표</span></div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 01. OVERVIEW                                                 -->
+    <!-- ============================================================ -->
+    <section class="block reveal reveal-3" id="sec-overview">
+      <div class="sec-num">[ 01 ] OVERVIEW</div>
+      <h2>왜 <span class="accent">음성 우선</span>인가</h2>
+      <div class="sec-sub">기존 MT 복습과의 본질적 차이는 학습 메커니즘 자체에 있다</div>
+
+      <p class="body">POLY 학생들은 매달 MT(Monthly Test)를 본다. 시험이 끝나면 틀린 문제를 다시 푼다. 선생님이 설명하고, 학생은 받아 적고, 다음 시험까지 잊어버린다. 이 흐름은 수십 년 동안 바뀌지 않았다.</p>
+
+      <p class="body"><strong>MT Review는 이 흐름을 끊는다.</strong> 학생은 Luna와 음성으로 대화하면서 자신이 왜 그 답을 골랐는지 직접 설명한다. 정답을 맞춰도 Luna는 한 번 더 묻는다 — "어떤 부분을 읽고 그렇게 생각했어?"</p>
+
+      <p class="body">지문은 정형화된 문제 은행에서 꺼내오지 않는다. 학생의 <strong>오답 데이터와 흥미·레벨</strong>을 바탕으로 AI가 매번 새로 가공해 제시한다 — 같은 Skill을 다른 이야기로 반복 노출시켜 "또 이 문제네" 하는 학습 권태를 차단한다.</p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="width: 30%;">차원</th>
+            <th style="width: 35%;">기존 MT 복습</th>
+            <th style="width: 35%;" class="target">MT Review</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>학습 주체</strong></td>
+            <td class="before">선생님이 설명, 학생은 수동적으로 수용</td>
+            <td class="after">Luna가 질문, 학생이 스스로 언어로 설명</td>
+          </tr>
+          <tr>
+            <td><strong>피드백 구조</strong></td>
+            <td class="before">문제 풀기 → 채점 → 끝</td>
+            <td class="after">대화 → 이해 확인 → 칭찬 → 다음 문제</td>
+          </tr>
+          <tr>
+            <td><strong>오답 처리</strong></td>
+            <td class="before">정답·오답 이분법</td>
+            <td class="after">"왜 그렇게 생각했어?" 단계적 이끌기</td>
+          </tr>
+          <tr>
+            <td><strong>개인화</strong></td>
+            <td class="before">모든 학생 동일 경험</td>
+            <td class="after">학생 오답 데이터 기반 맞춤 지문 생성</td>
+          </tr>
+          <tr>
+            <td><strong>지문 소스</strong></td>
+            <td class="before">고정된 문제 은행에서 추출</td>
+            <td class="after">학생 흥미·레벨 반영 AI 실시간 생성</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <div class="label">한 줄 정리</div>
+        <p>MT Review는 <strong>"문제지 다시 풀기"</strong>가 아니라 <strong>"왜 그렇게 답했는지 말로 설명하기"</strong>다. 영어를 쓰는 게 아니라 영어로 생각하게 만드는 학습이다.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 02. UX PHILOSOPHY                                            -->
+    <!-- ============================================================ -->
+    <section class="block reveal reveal-4" id="sec-philosophy">
+      <div class="sec-num">[ 02 ] UX PHILOSOPHY</div>
+      <h2>3가지 <span class="accent">핵심 철학</span></h2>
+      <div class="sec-sub">화면을 비우고, 정답을 비우고, 숙제라는 느낌을 비운다</div>
+
+      <div class="philo-grid">
+        <div class="philo-card">
+          <div class="n">01 · Voice First</div>
+          <h3>화면이 아닌<br>음성으로 배운다</h3>
+          <p>입력창도, 채팅 버블도, 캐릭터 이미지도 없다. 학생은 손가락이 아닌 입으로 답하고, Luna도 텍스트 말풍선 없이 목소리로만 존재한다.</p>
+          <div class="quote">"화면을 비워 배경 영상과 지문에 집중하게 만든다."</div>
+        </div>
+
+        <div class="philo-card">
+          <div class="n">02 · No "Wrong"</div>
+          <h3>틀렸다는 말은<br>절대 하지 않는다</h3>
+          <p>Luna는 "틀렸어", "오답", "No"라는 표현을 쓰지 않는다. 대신 지문으로 돌아가는 질문만 한다. 정답을 맞춰도 한 번 더 "왜?"를 묻는다.</p>
+          <div class="quote">"근거를 언어로 표현하는 훈련을 시킨다."</div>
+        </div>
+
+        <div class="philo-card">
+          <div class="n">03 · Game Feel</div>
+          <h3>복습이 게임<br>한 판처럼</h3>
+          <p>지문 키워드 기반 배경 영상이 자동 전환되고, 정답 시 컨페티가 터지며, 진행바가 골드 스타로 채워진다. 숙제가 아닌 짧은 게임이 된다.</p>
+          <div class="quote">"0점은 없다 — 힌트를 써도 1점은 받는다."</div>
+        </div>
+      </div>
+
+      <div class="dialogue-pair">
+        <div class="dialogue correct">
+          <div class="head">
+            <span>대화 예시 — 정답 흐름</span>
+            <span class="tag">✓ CORRECT</span>
+          </div>
+          <div class="turn luna">
+            <span class="speaker">Luna</span>
+            <span class="text">완전 잘했어! B가 딱 맞아, ○○아! 근데 이야기에서 어떤 부분을 읽고 B라고 생각했어?</span>
+          </div>
+          <div class="turn student">
+            <span class="speaker">학생</span>
+            <span class="text">rain fell hard on the leaves라고 나와 있어요</span>
+          </div>
+          <div class="turn luna">
+            <span class="speaker">Luna</span>
+            <span class="text">오오! 단서를 두 개나 찾았네! 이게 바로 detail 문제 푸는 법이야. 정말 꼼꼼하게 읽었어!</span>
+          </div>
+        </div>
+
+        <div class="dialogue wrong">
+          <div class="head">
+            <span>대화 예시 — 오답 흐름</span>
+            <span class="tag">↻ RETRY</span>
+          </div>
+          <div class="turn student">
+            <span class="speaker">학생</span>
+            <span class="text">(오답 발화)</span>
+          </div>
+          <div class="turn luna">
+            <span class="speaker">Luna</span>
+            <span class="text">이야기에서 Pip이 왜 밖에 못 나갔는지 다시 한번 찾아볼까?</span>
+          </div>
+          <div class="turn student">
+            <span class="speaker">상태</span>
+            <span class="text" style="color: var(--ink-muted); font-style: italic;">→ 재도전 → 3회 이상 실패 시 "같이 찾아보자" 스캐폴딩 모드 전환</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 03. LAYOUT                                                   -->
+    <!-- ============================================================ -->
+    <section class="block reveal reveal-5" id="sec-layout">
+      <div class="sec-num">[ 03 ] LAYOUT</div>
+      <h2>UI <span class="accent">레이아웃 구조</span></h2>
+      <div class="sec-sub">학생이 볼 화면은 지문과 선택지뿐, 나머지는 모두 비운다</div>
+
+      <div class="ui-wire">
+        <div class="wire-tag">▶ session.html · 핵심 튜터 화면</div>
+        <div class="topbar">
+          <div class="left">POLY · Luna's Review</div>
+          <div class="progress">
+            <span class="pill done"></span>
+            <span class="pill done"></span>
+            <span class="pill current"></span>
+            <span class="pill"></span>
+            <span class="pill"></span>
+          </div>
+          <div class="qnum">Q 2 / 5</div>
+        </div>
+
+        <div class="story-card">
+          <div class="label">Story · 타이프라이터로 등장</div>
+          <div class="text">One day, Pip the rabbit stayed inside. It was raining hard outside the burrow, and rain fell hard on the leaves above her home...</div>
+        </div>
+
+        <div class="q-card">
+          <div class="q">Q. Why did Pip stay inside?</div>
+          <div class="choices">
+            <div class="choice"><span class="key">A</span> She was tired</div>
+            <div class="choice correct"><span class="key">B</span> It was raining <span class="checkmark">✓</span></div>
+            <div class="choice"><span class="key">C</span> She was hungry</div>
+            <div class="choice"><span class="key">D</span> She was scared</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ui-wire-annotations">
+        <div class="a">
+          <strong>배경 영상</strong>
+          지문 키워드(forest / ocean / city / farm) 기반으로 자동 교체. 반투명 어두운 오버레이로 텍스트 가독성 확보.
+        </div>
+        <div class="a">
+          <strong>지문 카드</strong>
+          글래스모피즘 + 타이프라이터 등장. Luna가 영어로 낭독하는 동안 <strong>현재 읽는 문장이 실시간 하이라이트</strong>되어 — 가라오케처럼 시선을 글자에 묶어둔다.
+        </div>
+        <div class="a">
+          <strong>문제 카드</strong>
+          A/B/C/D 키는 monospace 배지. 정답 선택 시 초록 하이라이트, 오답 시 shake — 텍스트 없이 시각만으로 전달.
+        </div>
+      </div>
+
+      <h3 style="font-family: var(--display); font-weight: 600; font-size: 20px; letter-spacing: -0.02em; margin: 40px 0 16px;">컬러 시스템</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width: 24%;">역할</th>
+            <th style="width: 32%;">색상</th>
+            <th>용도</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>배경 베이스</td>
+            <td><div class="swatch"><div class="chip" style="background: #080A16;"></div><span class="code">#080A16</span></div></td>
+            <td>딥 다크, 배경 영상 위 오버레이</td>
+          </tr>
+          <tr>
+            <td>브랜드 블루</td>
+            <td><div class="swatch"><div class="chip" style="background: #0066FF;"></div><span class="code">#0066FF</span></div></td>
+            <td>POLY 로고, 진행 포인트</td>
+          </tr>
+          <tr>
+            <td>카드 배경</td>
+            <td><div class="swatch"><div class="chip" style="background: rgba(255,255,255,0.08); border: 1px solid #ccc;"></div><span class="code">rgba(255,255,255,.08)</span></div></td>
+            <td>글래스모피즘 지문/문제 카드</td>
+          </tr>
+          <tr>
+            <td>정답 하이라이트</td>
+            <td><div class="swatch"><div class="chip" style="background: #22C55E;"></div><span class="code">#22C55E</span></div></td>
+            <td>정답 선택지 배경</td>
+          </tr>
+          <tr>
+            <td>골드 스타</td>
+            <td><div class="swatch"><div class="chip" style="background: #F6D860;"></div><span class="code">#F6D860</span></div></td>
+            <td>완료된 진행 필 (별점)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-family: var(--display); font-weight: 600; font-size: 20px; letter-spacing: -0.02em; margin: 40px 0 16px;">모션 시스템</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width: 28%;">효과</th>
+            <th style="width: 24%;">발생 시점</th>
+            <th>목적</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong style="color: var(--ink);">타이프라이터</strong></td>
+            <td>지문 카드 등장</td>
+            <td>읽기 리듬 조성 · 집중 유도</td>
+          </tr>
+          <tr>
+            <td><strong style="color: var(--ink);">카라오케 하이라이트</strong></td>
+            <td>Luna 낭독 중</td>
+            <td>현재 읽는 문장에 실시간 하이라이트 — 시선 고정 · 텍스트 주목도 극대화</td>
+          </tr>
+          <tr>
+            <td><strong style="color: var(--ink);">컨페티 파티클</strong></td>
+            <td>첫 시도 정답</td>
+            <td>즉각적 성취 피드백 (Canvas 60줄, 라이브러리 불필요)</td>
+          </tr>
+          <tr>
+            <td><strong style="color: var(--ink);">선택지 shake</strong></td>
+            <td>오답 하이라이트</td>
+            <td>"틀렸다"는 말 없이 시각만으로 전달</td>
+          </tr>
+          <tr>
+            <td><strong style="color: var(--ink);">진행 필 → 골드</strong></td>
+            <td>문항 완료</td>
+            <td>달성감 시각화 · 다음 문항 진입 유도</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="block reveal" id="sec-voice">
+      <div class="sec-num">[ 04 ] VOICE EXPERIENCE</div>
+      <h2>음성은 <span class="accent">핵심 인터페이스</span>다</h2>
+      <div class="sec-sub">화면 UI보다 더 많은 설계 고민이 담겨 있는 영역</div>
+
+      <p class="body">Luna는 한국어와 영어를 자연스럽게 전환한다. 영어 음성은 <strong>pitch 0.92</strong>로 낮춰 어린 목소리가 아닌 신뢰감 있는 선생님 느낌을 구현했다. 기본 TTS 음성이 너무 앳된 느낌을 주는 문제를 해결한 의도적 튜닝이다.</p>
+
+      <div class="voice-grid">
+        <div class="voice-card">
+          <div class="head">
+            <h4>격려 · 설명 · 질문</h4>
+            <span class="meta">KO</span>
+          </div>
+          <p>따뜻하고 친근한 톤으로, 학생의 첫 시도를 인정하고 다음 단계로 자연스럽게 이끈다. 칭찬은 구체적으로, 힌트는 부드럽게.</p>
+          <div class="props">
+            <span><strong>언어</strong> 한국어</span>
+            <span><strong>rate</strong> 0.92</span>
+            <span><strong>톤</strong> 친근 · 따뜻</span>
+          </div>
+        </div>
+
+        <div class="voice-card">
+          <div class="head">
+            <h4>지문 · 문제 낭독</h4>
+            <span class="meta">EN</span>
+          </div>
+          <p>UK Female 음성, pitch를 낮춰 차분한 선생님 톤으로 조정. 학생이 글자를 읽는 동시에 정확한 영어 발음을 흘려듣게 한다.</p>
+          <div class="props">
+            <span><strong>언어</strong> English (UK)</span>
+            <span><strong>pitch</strong> 0.92</span>
+            <span><strong>톤</strong> 차분 · 신뢰</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-family: var(--display); font-weight: 600; font-size: 20px; letter-spacing: -0.02em; margin: 32px 0 16px;">STT(음성 인식) 설계 결정</h3>
+      <p class="body">브라우저 기반 STT는 특히 모바일에서 제약이 많다. 다음은 실제 학원 환경에서 검증된 주요 설계 결정 사항이다.</p>
+
+      <div class="callout">
+        <div class="label">실전 STT 가드레일 4가지</div>
+        <p style="margin-bottom: 12px;"><strong>1. 탭해서 말하기 버튼</strong> — 모바일에서 사용자 제스처 없이 마이크를 시작하면 브라우저가 차단한다. 자동 시작 대신 탭 버튼으로 명시적 트리거.</p>
+        <p style="margin-bottom: 12px;"><strong>2. 디바이스별 침묵 타이머</strong> — 모바일 10초 / 데스크탑 5초. 학생이 생각하고 영어 문장을 떠올리는 시간을 충분히 확보.</p>
+        <p style="margin-bottom: 12px;"><strong>3. interim fallback</strong> — Android Chrome은 최종 결과 없이 끝나는 경우가 있다. 임시 결과를 메모리에 저장해뒀다가 최종 누락 시 사용.</p>
+        <p><strong>4. 아동 음성 특화 평가</strong> — 1~3학년은 발음·억양이 부정확하다. 성인 기준의 strict 매칭 대신 <strong>음소 유사도 + LLM 의미 평가</strong>를 병행 — 문법은 틀려도 의도가 맞으면 정답으로 처리한다.</p>
+      </div>
+
+      <h3 style="font-family: var(--display); font-weight: 600; font-size: 20px; letter-spacing: -0.02em; margin: 40px 0 0;">라이브 데모</h3>
+      <p class="body" style="margin-top: 12px;">아래에서 실제 동작 흐름을 확인할 수 있다. iframe이 차단되거나 로드에 실패할 경우 새 창에서 열 수 있는 폴백 버튼이 표시된다.</p>
+
+      <div class="demo-wrap">
+        <div class="demo-toolbar">
+          <div class="left">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <div class="url">jinilee-hue.github.io/LIO/mt-review/demo-auto.html</div>
+          </div>
+          <a href="https://jinilee-hue.github.io/LIO/mt-review/demo-auto.html" target="_blank" rel="noopener" class="open-btn">
+            새 창에서 열기 ↗
+          </a>
+        </div>
+        <iframe
+          id="demo-frame"
+          class="demo-iframe"
+          src="https://jinilee-hue.github.io/LIO/mt-review/demo-auto.html"
+          loading="lazy"
+          allow="microphone; autoplay"
+          referrerpolicy="no-referrer"
+          title="MT Review Live Demo"
+        ></iframe>
+        <div class="demo-fallback" id="demo-fallback">
+          <h4>데모를 임베드로 불러올 수 없습니다</h4>
+          <p>음성 권한·iframe 정책 등의 이유로 인라인 표시가 차단되었습니다.<br>아래 버튼으로 새 창에서 데모를 실행하세요.</p>
+          <a href="https://jinilee-hue.github.io/LIO/mt-review/demo-auto.html" target="_blank" rel="noopener" class="btn">
+            ▶ 데모 새 창에서 열기
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 05. STATUS & ROADMAP                                         -->
+    <!-- ============================================================ -->
+    <section class="block reveal" id="sec-status">
+      <div class="sec-num">[ 05 ] NEXT FLOW · ROADMAP · IMPACT</div>
+      <h2>앞으로 진행할 <span class="accent">단계별 계획</span></h2>
+      <div class="sec-sub">무엇을 · 어떤 순서로 · 왜 · 그래서 학원에 무엇이 남는가</div>
+
+      <h3 style="font-family: var(--display); font-weight: 600; font-size: 20px; letter-spacing: -0.02em; margin: 36px 0 0;">서비스 구현 FLOW</h3>
+      <p class="body" style="margin-top: 12px;">선생님이 오답 데이터를 입력하는 순간부터 학생이 세션을 완료하기까지 — 각 단계에서 어떤 기술이 어떻게 연결되어 동작하는지의 전체 흐름이다.</p>
+
+      <div class="impl-flow">
+
+        <!-- 1단계: 세션 준비 -->
+        <div class="iflow-label">1단계 · 세션 준비</div>
+        <div class="iflow-cards">
+          <div class="iflow-card">
+            <div class="cn">01</div>
+            <div class="ct">선생님 MT 오답 입력</div>
+            <div class="cd">학생 이름 · 학년 · MT 오답 항목 · 흥미 주제 선택</div>
+            <span class="cb">index.html</span>
+          </div>
+          <div class="iflow-h-arr">→</div>
+          <div class="iflow-card">
+            <div class="cn">02</div>
+            <div class="ct">AI 맞춤 지문 실시간 생성</div>
+            <div class="cd">오답 Skill · 학생 레벨 · 흥미 반영 → 새 이야기 생성</div>
+            <span class="cb">Claude 3.5 Sonnet · Gemini 2.0 Flash</span>
+          </div>
+          <div class="iflow-h-arr">→</div>
+          <div class="iflow-card">
+            <div class="cn">03</div>
+            <div class="ct">세션 화면 준비</div>
+            <div class="cd">지문 키워드 분석 → 배경 영상 선택 → session.html 로드</div>
+            <span class="cb">session.html · background.js</span>
+          </div>
+        </div>
+
+        <div class="iflow-v-arr">세션 시작</div>
+
+        <!-- 2단계: 반복 루프 -->
+        <div class="iflow-label">2단계 · 문항별 반복 루프</div>
+        <div class="iflow-loop-box">
+          <div class="loop-badge">× 5문항 반복</div>
+          <div class="iflow-loop-inner">
+            <div class="iflow-loop-step">
+              <div class="ls-num">A · 낭독</div>
+              <div class="ls-title">Luna 지문 낭독</div>
+              <div class="ls-desc">타이프라이터 등장<br>카라오케 하이라이트<br>TTS · UK Female<br>pitch 0.92</div>
+            </div>
+            <div class="iflow-loop-arr">→</div>
+            <div class="iflow-loop-step">
+              <div class="ls-num">B · 제시</div>
+              <div class="ls-title">문제 · 선택지 등장</div>
+              <div class="ls-desc">fade-in 애니메이션<br>A/B/C/D 선택지<br>Luna 문제 낭독</div>
+            </div>
+            <div class="iflow-loop-arr">→</div>
+            <div class="iflow-loop-step">
+              <div class="ls-num">C · 응답</div>
+              <div class="ls-title">학생 음성 응답</div>
+              <div class="ls-desc">탭 버튼 → STT 시작<br>침묵 타이머<br>모바일 10초<br>데스크탑 5초</div>
+            </div>
+            <div class="iflow-loop-arr">→</div>
+            <div class="iflow-loop-step">
+              <div class="ls-num">D · 평가</div>
+              <div class="ls-title">AI 실시간 평가</div>
+              <div class="ls-desc">음소 유사도<br>+ 의미 판별 병행<br>Claude Haiku<br>속도 우선</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="iflow-v-arr">평가 결과에 따라 분기</div>
+
+        <!-- 3단계: 분기 -->
+        <div class="iflow-label">3단계 · 피드백 분기</div>
+        <div class="iflow-branch">
+          <div class="iflow-branch-item correct">
+            <div class="bh">✓ 정답</div>
+            <ul>
+              <li>Luna 즉각 칭찬 + 학생 이름 호명</li>
+              <li>"어떤 부분을 읽고 그렇게 생각했어?" 재질문</li>
+              <li>학생 근거 발화 → AI 이해도 재확인</li>
+              <li>진행 필 골드 전환 → 컨페티(3점 시) → 다음 문항</li>
+            </ul>
+          </div>
+          <div class="iflow-branch-item wrong">
+            <div class="bh">↻ 오답</div>
+            <ul>
+              <li>"틀렸어" 없이 — 지문으로 돌아가는 힌트 질문</li>
+              <li>선택지 shake 모션 → 재시도 (최대 3회)</li>
+              <li>3회 초과 → "같이 찾아보자" 스캐폴딩 모드 전환</li>
+              <li>최소 1점 보장 — 0점 없음 → 다음 문항</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="iflow-merge">5문항 완료 후 합류</div>
+
+        <!-- 4단계: 완료 -->
+        <div class="iflow-end">
+          <div class="iflow-end-card">
+            <div class="ec-label">세션 완료</div>
+            <div class="ec-title">결과 화면 · results.html</div>
+            <div class="ec-desc">별점 합산 · 전체 축하 컨페티<br>학습 성취 메시지 + 다음 복습 Skill 안내</div>
+          </div>
+        </div>
+
+      </div>
+
+      <h3 style="font-family: var(--display); font-weight: 600; font-size: 20px; letter-spacing: -0.02em; margin: 40px 0 0;">단계별 로드맵</h3>
+
+      <div class="roadmap">
+        <div class="phase">
+          <div class="h">
+            <span class="name">Phase A</span>
+            <span class="when">단기 완성도</span>
+          </div>
+          <ul>
+            <li>results.html 세션 완료 축하 화면 (별점 합산 + 컨페티 모션)</li>
+            <li>배경 영상 파일 제작 · 적용 (forest / ocean / city / farm)</li>
+            <li>ElevenLabs TTS 연동 — 감정 표현 가능한 Luna 목소리</li>
+          </ul>
+        </div>
+        <div class="phase">
+          <div class="h">
+            <span class="name">Phase B</span>
+            <span class="when">중기 학습 효과</span>
+          </div>
+          <ul>
+            <li>학생 발화 내용 기록 → 선생님 복습 리포트 자동 생성</li>
+            <li>오답 개념별 분류 태깅 (detail / inference / main idea / vocabulary)</li>
+            <li>학생별 Skill 이력 추적 — 반복 틀린 개념 심화 질문 루프 진입</li>
+          </ul>
+        </div>
+        <div class="phase">
+          <div class="h">
+            <span class="name">Phase C</span>
+            <span class="when">장기 확장</span>
+          </div>
+          <ul>
+            <li>선생님 대시보드 — 반 전체 현황 + 개인별 취약 개념 시각화</li>
+            <li>학생 PWA + 카카오 로그인 — 세션 이력 저장 · 이어보기</li>
+            <li>Cloudflare Worker 프록시 — API 키 브라우저 노출 제거</li>
+            <li>Luna 캐릭터 확장 — 학년별 다른 음성 톤 · 학생 이름 개인화 TTS</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 style="font-family: var(--display); font-weight: 600; font-size: 20px; letter-spacing: -0.02em; margin: 40px 0 0;">기술 아키텍처</h3>
+      <p class="body" style="margin-top: 12px;">학습 효과를 만드는 건 UI가 아니라 그 뒤의 기술 스택이다. 세 가지 핵심 기술이 "할루시네이션 없는 안전한 지문 생성", "교감 가능한 음성", "아동 발음에 관대한 평가"를 가능하게 한다.</p>
+
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-label">01 · RAG</div>
+          <h4>POLY 커리큘럼 결합 검색증강생성</h4>
+          <p>초등 저학년에게 부적절하거나 검증되지 않은 문장이 생성되는 <strong>할루시네이션을 원천 차단</strong>한다. POLY 고유 커리큘럼 데이터와 LLM을 결합해 Skill 기반 안전한 지문을 실시간 생성한다.</p>
+        </div>
+        <div class="tech-card">
+          <div class="tech-label">02 · Emotional TTS</div>
+          <h4>교감 가능한 Luna 음성</h4>
+          <p>딱딱한 기계음이 아닌 <strong>정서적 표현이 가능한 TTS 엔진</strong>으로 모델링. 칭찬·격려·질문 각각의 톤이 다르게 들리도록 SSML 태그로 미세 조정 — Phase A에 ElevenLabs 도입 예정.</p>
+        </div>
+        <div class="tech-card">
+          <div class="tech-label">03 · Child STT</div>
+          <h4>아동 음성 특화 평가</h4>
+          <p>발음·억양이 부정확한 1~3학년에 맞춰 <strong>strict 매칭 대신 의미 평가</strong> 적용. 음소 유사도 + LLM 의도 판별을 병행해 "rain fell hard"를 "lane fell hard"로 인식해도 정답 처리.</p>
+        </div>
+      </div>
+
+      <div class="impact-callout">
+        <div class="label">◆ Expected Impact</div>
+        <h3>"시험"이 아닌 <span class="accent">상호작용형 콘텐츠</span>로의 패러다임 전환</h3>
+        <p>MT Review는 1~3학년 학생에게서 "평가"라는 심리적 부담을 걷어낸다. 친근한 Luna와 한 편의 짧은 이야기를 완성하는 성취감을 제공함으로써, 오답 관리가 <strong>자기주도적인 즐거운 여정</strong>으로 변모한다.</p>
+        <p>학부모는 "우리 아이가 영어로 말한다"는 만족을, 선생님은 "수업 외 시간에도 학생이 학습한다"는 운영 효율을, 학원은 <strong>다음 MT 성적 향상</strong>이라는 실질적 성과를 얻는다.</p>
+
+        <div class="metrics">
+          <div class="metric">
+            <div class="num">0</div>
+            <div class="desc">"틀렸다"는 말이 학생에게 노출되는 횟수</div>
+          </div>
+          <div class="metric">
+            <div class="num">×N</div>
+            <div class="desc">같은 Skill을 다른 이야기로 반복 노출</div>
+          </div>
+          <div class="metric">
+            <div class="num">1:1</div>
+            <div class="desc">모든 학생에게 개인 튜터 — 비용은 0</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <div class="doc-footer">
+      <div class="summary">
+        <div class="label">한 문장으로 정리</div>
+        <blockquote>
+          학생이 영어로 말하는 것을 두려워하지 않도록,<br>
+          <span class="accent">Luna가 항상 옆에서 응원하는 경험.</span>
+        </blockquote>
+      </div>
+      <div class="end-mark">End of Report</div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ============== Scroll Spy ==============
+  const sections = document.querySelectorAll('section.block');
+  const tocLinks = document.querySelectorAll('#toc a');
+
+  const spy = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        tocLinks.forEach(a => {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+
+  sections.forEach(s => spy.observe(s));
+
+  // ============== iframe fallback ==============
+  const iframe = document.getElementById('demo-frame');
+  const fallback = document.getElementById('demo-fallback');
+  let loaded = false;
+
+  iframe.addEventListener('load', () => { loaded = true; });
+  iframe.addEventListener('error', () => {
+    iframe.style.display = 'none';
+    fallback.classList.add('visible');
+  });
+  // After 8s, if not loaded, show fallback
+  setTimeout(() => {
+    if (!loaded) {
+      iframe.style.display = 'none';
+      fallback.classList.add('visible');
+    }
+  }, 8000);
+
+  // ============== Reveal on scroll for sections beyond fold ==============
+  const revealOnScroll = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '';
+        entry.target.style.animation = 'rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        revealOnScroll.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.05 });
+
+  document.querySelectorAll('.reveal:not(.reveal-1):not(.reveal-2):not(.reveal-3):not(.reveal-4):not(.reveal-5)').forEach(el => {
+    el.style.opacity = '0';
+    revealOnScroll.observe(el);
+  });
+</script>
+</body>
+</html>
